@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Document Portal</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script defer src="./data.js"></script>
+  <script defer>
+    window.addEventListener("DOMContentLoaded", () => {
+      const grid = document.querySelector("#deptGrid");
+      const toast = document.querySelector("#toast");
+
+      const entries = Object.entries(DOCUMENTS);
+      grid.innerHTML = entries.map(([key, d]) => {
+        const sopCount = (d.sop || []).length;
+        const formCount = (d.form || []).length;
+        return `
+          <a class="dept-card" href="./department.html?dept=${encodeURIComponent(key)}">
+            <div class="dept-icon">${d.icon || "📄"}</div>
+            <div class="dept-body">
+              <div class="dept-title">${d.name}</div>
+              <div class="dept-desc">${d.desc || ""}</div>
+              <div class="dept-meta">
+                <span class="dot blue"></span><span>SOP: ${sopCount}</span>
+                <span class="dot green"></span><span>Form: ${formCount}</span>
+              </div>
+            </div>
+          </a>
+        `;
+      }).join("");
+
+      // toast แสดงครั้งแรก
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2500);
+    });
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">📄</div>
+      <div>
+        <div class="brand-title">Document Portal</div>
+        <div class="brand-sub">ระบบดาวน์โหลดเอกสารภายในองค์กร</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1 class="page-title">เลือกแผนก</h1>
+    <div id="deptGrid" class="grid"></div>
+  </main>
+
+  <div id="toast" class="toast">
+    <div class="toast-title">พร้อมใช้งาน</div>
+    <div class="toast-desc">เลือกแผนกเพื่อดูเอกสาร</div>
+  </div>
+</body>
+</html>

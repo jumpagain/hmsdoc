@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Department - Document Portal</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script defer src="./data.js"></script>
+  <script defer>
+    function qs(name) {
+      return new URLSearchParams(location.search).get(name);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const deptKey = qs("dept");
+      const dept = DOCUMENTS?.[deptKey];
+
+      if (!dept) {
+        document.querySelector("#deptName").textContent = "ไม่พบแผนก";
+        document.querySelector("#deptDesc").textContent = "กรุณากลับไปหน้าแรก";
+        return;
+      }
+
+      document.querySelector("#deptName").textContent = dept.name;
+      document.querySelector("#deptDesc").textContent = dept.desc || "";
+
+      const sopCount = (dept.sop || []).length;
+      const formCount = (dept.form || []).length;
+
+      document.querySelector("#countSop").textContent = sopCount;
+      document.querySelector("#countForm").textContent = formCount;
+
+      // ปุ่มไปหน้า docs
+      const goDocs = (type) => {
+        location.href = `./docs.html?dept=${encodeURIComponent(deptKey)}&type=${encodeURIComponent(type)}`;
+      };
+      document.querySelector("#btnSop").addEventListener("click", () => goDocs("sop"));
+      document.querySelector("#btnForm").addEventListener("click", () => goDocs("form"));
+    });
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./index.html">
+      <div class="brand-icon">📄</div>
+      <div>
+        <div class="brand-title">Document Portal</div>
+        <div class="brand-sub">ระบบดาวน์โหลดเอกสารภายในองค์กร</div>
+      </div>
+    </a>
+  </header>
+
+  <main class="container">
+    <a class="back" href="./index.html">← กลับไปหน้าแผนก</a>
+
+    <div class="dept-header">
+      <div class="dept-big">
+        <div class="dept-big-title" id="deptName">-</div>
+        <div class="dept-big-desc" id="deptDesc">-</div>
+      </div>
+
+      <div class="tab-row">
+        <button class="tab" id="btnSop">
+          <span class="tab-ic">🗂️</span> SOP
+          <span class="badge" id="countSop">0</span>
+        </button>
+        <button class="tab" id="btnForm">
+          <span class="tab-ic">📝</span> Form
+          <span class="badge" id="countForm">0</span>
+        </button>
+      </div>
+
+      <div class="hint">
+        เลือกประเภทเอกสารที่ต้องการดาวน์โหลด
+      </div>
+    </div>
+  </main>
+</body>
+</html>
