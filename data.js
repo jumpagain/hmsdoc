@@ -176,4 +176,5 @@ const DOCUMENTS = {
   },
 };
 
-export default DOCUMENTS;
+window.DOCUMENTS = DOCUMENTS;
+
