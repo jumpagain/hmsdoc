@@ -231,19 +231,14 @@ const DOCUMENTS = {
       { code: "SOP-ISMS-01", title: "การทำ Web Filtering", url: "https://drive.google.com/file/d/1VYWQlYXSaVINYAf8-aCokrbtCVJZ5gio/view?usp=sharing" },
       { code: "SOP-ISMS-02", title: "การบริหารความสัมพันธ์กับซัพพลายเออร์ (Supply Relationship Management Procedure)", url: "https://drive.google.com/file/d/1twXsI3UA9Wuo7dWEii3sIm6oAbTYj-aR/view?usp=sharing" },
       { code: "SOP-ISMS-03", title: "การจัดทำลายสื่อบันทึกข้อมูล (Disposal of media procedure)", url: "https://drive.google.com/file/d/11pBUSaZQ_Fa5EK4YP-aMmPeMcHCItOQB/view?usp=sharing" },
-      { code: "", title: "SOP-ISMS-04 การใช้งานอุปกรณ์คอมพิวเตอร์พกพา 
-(Mobile Device and BYOD Procedure)", url: "https://drive.google.com/file/d/1zfbLZMGA6K8PD7tyLaCONlLzHo6TjbAp/view?usp=sharing" },
-      { code: "", title: "SOP-ISMS-05 การบริหารจัดการทรัพย์สินของบริษัท 
-(Assets Management Procedure)", url: "https://drive.google.com/file/d/1eBO-TslZloHECQafu4EBEqCLTgxFIJfG/view?usp=sharing" },
-      { code: "", title: "SOP-ISMS-06 การบริหารจัดการบัญชีรายชื่อผู้ใช้งาน
-(User Management Procedure)", url: "https://drive.google.com/file/d/1oA160B6mA9Zch15YL4GvDcIz5a2bcWY8/view?usp=sharing" },
+      { code: "", title: "SOP-ISMS-04 การใช้งานอุปกรณ์คอมพิวเตอร์พกพา \n(Mobile Device and BYOD Procedure)", url: "https://drive.google.com/file/d/1zfbLZMGA6K8PD7tyLaCONlLzHo6TjbAp/view?usp=sharing" },
+      { code: "", title: "SOP-ISMS-05 การบริหารจัดการทรัพย์สินของบริษัท \n(Assets Management Procedure)", url: "https://drive.google.com/file/d/1eBO-TslZloHECQafu4EBEqCLTgxFIJfG/view?usp=sharing" },
+      { code: "", title: "SOP-ISMS-06 การบริหารจัดการบัญชีรายชื่อผู้ใช้งาน \n(User Management Procedure)", url: "https://drive.google.com/file/d/1oA160B6mA9Zch15YL4GvDcIz5a2bcWY8/view?usp=sharing" },
       { code: "SOP-ISMS-07", title: "การทดสอบระบบ", url: "https://drive.google.com/file/d/19EdhafHMLc9UpsC4gVDMqanUgf8qzGQx/view?usp=sharing" },
       { code: "SOP-ISMS-08", title: "การบริหารความสัมพันธ์กับซัพพลายเออร์ (Supply Relationship Management Procedure)", url: "https://drive.google.com/file/d/1u0rsrFv4VgcSBFVXd1A9TyMJp9kardtW/view?usp=sharing" },
-      { code: "", title: "SOP-ISMS-09 การบริหารจัดการบัญชีรายชื่อผู้ใช้งาน
-(User Management Procedure)", url: "https://drive.google.com/file/d/1L-aNqdBC4OBzuPgHjNbDCM5d-dCCMuSa/view?usp=sharing" },
+      { code: "", title: "SOP-ISMS-09 การบริหารจัดการบัญชีรายชื่อผู้ใช้งาน \n(User Management Procedure)", url: "https://drive.google.com/file/d/1L-aNqdBC4OBzuPgHjNbDCM5d-dCCMuSa/view?usp=sharing" },
       { code: "SOP-ISMS-10", title: "การบริหารจัดการบัญชีรายชื่อผู้ใช้งาน", url: "https://drive.google.com/file/d/1zU6B_oqZwBUkv9SWGpoVVmnzLd-prqRm/view?usp=sharing" },
-      { code: "", title: "SOP-ISMS-11 การบริหารจัดการ Cloud 
-(Cloud Management)", url: "https://drive.google.com/file/d/1F7Bcz0RePDeYjpftHfXs48uqCRv9sXXq/view?usp=sharing" },
+      { code: "", title: "SOP-ISMS-11 การบริหารจัดการ Cloud \n(Cloud Management)", url: "https://drive.google.com/file/d/1F7Bcz0RePDeYjpftHfXs48uqCRv9sXXq/view?usp=sharing" },
       { code: "SOP-ISMS-12", title: "การติดตั้งซอฟต์แวร์ (Software Installation Standard Operating Procedure)", url: "https://drive.google.com/file/d/1QQizuLmiyCpR9gX4323q9DR-alvDIs_d/view?usp=sharing" },
     ],
     form: [
