@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Documents</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="data.js"></script>
+  <!-- ✅ cache busting ให้ตรงกับ index -->
+  <script src="data.js?v=20260128"></script>
 </head>
 <body>
   <header class="topbar">
@@ -33,7 +34,9 @@
     const params = new URLSearchParams(location.search);
     const deptKey = params.get("dept");
     const type = params.get("type"); // sop | form
-    const d = DOCUMENTS[deptKey];
+
+    const DOCS = window.DOCUMENTS || (typeof DOCUMENTS !== "undefined" ? DOCUMENTS : null);
+    const d = DOCS ? DOCS[deptKey] : null;
 
     const listEl = document.getElementById("docList");
 
@@ -63,9 +66,12 @@
       }).join("");
     }
 
-    if (!d) {
+    if (!DOCS) {
+      document.getElementById("pageTitle").textContent = "โหลดข้อมูลไม่สำเร็จ";
+      listEl.innerHTML = '<div class="empty">ไม่พบ DOCUMENTS (data.js อาจยังเป็นเวอร์ชันเก่าหรือมี export default)</div>';
+    } else if (!d) {
       document.getElementById("pageTitle").textContent = "ไม่พบแผนก";
-      listEl.innerHTML = '<div class="empty">ไม่พบข้อมูล</div>';
+      listEl.innerHTML = `<div class="empty">ไม่พบข้อมูลของแผนก: ${deptKey || "-"}</div>`;
     } else {
       const label = (type === "sop") ? "SOP" : "Form";
       document.title = `${label} - ${d.name || deptKey}`;
