@@ -2,96 +2,80 @@
 <html lang="th">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Documents - Document Portal</title>
-  <link rel="stylesheet" href="./style.css" />
-  <script defer src="./data.js"></script>
-  <script defer>
-    function qs(name) {
-      return new URLSearchParams(location.search).get(name);
-    }
-
-    function typeLabel(type) {
-      return type === "form" ? "Form" : "SOP";
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
-      const deptKey = qs("dept");
-      const type = (qs("type") || "sop").toLowerCase();
-
-      const dept = DOCUMENTS?.[deptKey];
-      const list = (dept && dept[type]) ? dept[type] : [];
-
-      const title = document.querySelector("#pageTitle");
-      const back = document.querySelector("#backLink");
-      const wrap = document.querySelector("#docList");
-      const empty = document.querySelector("#emptyState");
-
-      back.href = `./department.html?dept=${encodeURIComponent(deptKey || "")}`;
-
-      if (!dept) {
-        title.textContent = "ไม่พบแผนก";
-        empty.style.display = "block";
-        empty.querySelector("div").textContent = "กรุณากลับไปหน้าแรก";
-        return;
-      }
-
-      title.textContent = `${dept.name} • ${typeLabel(type)}`;
-
-      if (!list.length) {
-        empty.style.display = "block";
-        empty.querySelector("div").textContent = `ยังไม่มีเอกสารในหมวด ${typeLabel(type)}`;
-        return;
-      }
-
-      wrap.innerHTML = list.map((d) => `
-        <div class="doc-card">
-          <div class="doc-left">
-            <div class="doc-ic">${type === "form" ? "📝" : "🗂️"}</div>
-            <div>
-              <div class="doc-title">${escapeHtml(`${d.code} ${d.title}`)}</div>
-              <div class="doc-sub">อัปเดต: ${escapeHtml(d.updated || "-")}</div>
-            </div>
-          </div>
-          <a class="btn-download" href="${escapeAttr(d.url)}" target="_blank" rel="noopener">
-            ⬇ ดาวน์โหลด
-          </a>
-        </div>
-      `).join("");
-
-      function escapeHtml(s) {
-        return String(s).replace(/[&<>"']/g, (c) => ({
-          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-        }[c]));
-      }
-      function escapeAttr(s) {
-        // ป้องกัน quote หลุดใน attribute
-        return String(s).replace(/"/g, "&quot;");
-      }
-    });
-  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Documents</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="data.js"></script>
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="./index.html">
-      <div class="brand-icon">📄</div>
+    <a class="back" href="javascript:history.back()">← กลับ</a>
+
+    <div class="brand small">
+      <div class="brand-logo" id="deptIcon">📁</div>
       <div>
-        <div class="brand-title">Document Portal</div>
-        <div class="brand-sub">ระบบดาวน์โหลดเอกสารภายในองค์กร</div>
+        <div class="brand-title" id="pageTitle">Documents</div>
+        <div class="brand-sub" id="pageSub"></div>
       </div>
+    </div>
+
+    <a class="btn-contract" target="_blank"
+       href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
+      📄 ออกสัญญาอัตโนมัติ
     </a>
   </header>
 
   <main class="container">
-    <a class="back" id="backLink" href="./index.html">← กลับไปหน้าแผนก</a>
-
-    <h1 class="page-title" id="pageTitle">-</h1>
-
     <div id="docList" class="doc-list"></div>
-
-    <div id="emptyState" class="empty" style="display:none;">
-      <div>ไม่มีรายการ</div>
-    </div>
   </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const deptKey = params.get("dept");
+    const type = params.get("type"); // sop | form
+    const d = DOCUMENTS[deptKey];
+
+    const listEl = document.getElementById("docList");
+
+    function render(list) {
+      if (!list || list.length === 0) {
+        listEl.innerHTML = '<div class="empty">ไม่มีรายการ</div>';
+        return;
+      }
+
+      listEl.innerHTML = list.map(item => {
+        const url = (item.url || "").trim();
+        const right = url
+          ? `<a class="btn-download" href="${url}" target="_blank" rel="noopener">⬇ ดาวน์โหลด</a>`
+          : `<span class="btn-disabled">ยังไม่พร้อม</span>`;
+
+        return `
+          <div class="doc-card">
+            <div class="doc-left">
+              <div class="doc-ic">${type === "sop" ? "📘" : "🧾"}</div>
+              <div>
+                <div class="doc-title">${item.code} ${item.title}</div>
+              </div>
+            </div>
+            ${right}
+          </div>
+        `;
+      }).join("");
+    }
+
+    if (!d) {
+      document.getElementById("pageTitle").textContent = "ไม่พบแผนก";
+      listEl.innerHTML = '<div class="empty">ไม่พบข้อมูล</div>';
+    } else {
+      const label = (type === "sop") ? "SOP" : "Form";
+      document.title = `${label} - ${d.name || deptKey}`;
+      document.getElementById("deptIcon").textContent = d.icon || "📁";
+      document.getElementById("pageTitle").textContent = `${label} : ${d.name || deptKey}`;
+      document.getElementById("pageSub").textContent = d.desc || "";
+
+      const list = (type === "sop") ? (d.sop || []) : (d.form || []);
+      render(list);
+    }
+  </script>
 </body>
 </html>
