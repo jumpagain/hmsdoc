@@ -1,198 +1,179 @@
-// data.js
-// โครงสร้างข้อมูลเอกสาร แยกตามแผนก / SOP / Form
-// อ้างอิงจากไฟล์ SOP&Form.xlsx
+// data.js (AUTO-GENERATED FROM SOP&Form (2).xlsx)
+// - ใช้ชื่อแผนกตามในชีท
+// - เพิ่ม 'Formที่ใช้บ่อย' เป็นแผนกแรก
 
 const DOCUMENTS = {
+  "Formที่ใช้บ่อย": {
+    name: "Formที่ใช้บ่อย",
+    desc: "Form ที่ใช้บ่อย",
+    icon: "⭐",
+    sop: [
+    ],
+    form: [
+      { code: "FM-HR-09", title: "แบบขอเปลี่ยนแปลงข้อมูลประวัติ (Personal Information Change Form)", url: "https://drive.google.com/file/d/1gNTZ1PNhtI8itbyX88MgS6Qs_5K1JR7H/view?usp=sharing" },
+      { code: "FM-HR-10", title: "แบบฟอร์มการขอลาออกจากการเป็นพนักงาน", url: "https://drive.google.com/file/d/1GEoBirZBhaYf1hOUUKZx1oKw7L2fBYs6/view?usp=sharing" },
+      { code: "FM-HR-11", title: "แบบฟอร์มใบแจ้งคืนทรัพย์สินกรณีลาออก", url: "https://drive.google.com/file/d/1d2cmFgbjqwyN0wfICSq9Ff-WsP4vYAWX/view?usp=sharing" },
+      { code: "FM-HR-13", title: "ขออนุมัติโครงการ", url: "https://drive.google.com/file/d/1DDOQuI7ZeemoKfgMFcEQGmpWxp4hkmDV/view?usp=sharing" },
+      { code: "FM-HR-16", title: "Training and Seminar Request Form (ใบขออนุมัติฝึกอบรมและสัมมนา)", url: "https://drive.google.com/file/d/1Cb-0yI8DQo5OF4wQhVIG6E3feBOhZ1qa/view?usp=sharing" },
+      { code: "FM-HR-21", title: "แบบฟอร์มการแจ้งซ่อม", url: "https://drive.google.com/file/d/1T4ZV36nNYrf4RTAUmcqW6KxNPbpIcQzN/view?usp=sharing" },
+      { code: "FM-HR-22", title: "แบบฟอร์มใบถือครองทรัพย์สิน-อุปกรณ์ของบริษัท", url: "https://drive.google.com/file/d/1Xvvo0zzfGq3IglLQsS7tnJNB2Ffunc3p/view?usp=sharing" },
+      { code: "FM-HR-23", title: "ข้อกำหนดการถือครองทรัพย์สิน-อุปกรณ์ของบริษัท", url: "https://drive.google.com/file/d/1vPA1uzhVzcIAITVjPFFj0-1Qj4qPqjQM/view?usp=sharing" },
+      { code: "FM-HR-24", title: "แบบฟอร์ม_ขออนุญาตยืมและคืนทรัพย์สิน-อุปกรณ์ของบริษัท", url: "https://drive.google.com/file/d/1du6O0uqG1Xw0sY0mWtdpV6eG2sJw2xwP/view?usp=sharing" },
+      { code: "FM-HR-25", title: "แบบฟอร์ม_นำทรัพย์สินอุปกรณ์ เข้า-ออกจากบริษัท", url: "https://drive.google.com/file/d/1RPDgSiVC2RAsL0wHKjmx9o5iSwtX9E5V/view?usp=sharing" },
+      { code: "FM-HR-26", title: "แบบฟอร์มข้อตกลงไม่เปิดเผยความลับ", url: "https://drive.google.com/file/d/1dseCvbLMa0nl2rjNfQh2Nmhq0hTQ2oYw/view?usp=sharing" },
+      { code: "FM-HR-27", title: "Employee Contract (สัญญาจ้างพนักงาน)", url: "https://drive.google.com/file/d/1ymaOCkYOMDU8MMf_S6u4ZLgjaem9ntDj/view?usp=sharing" },
+      { code: "FM-HR-28", title: "FORM_ข้อตกลงไม่เปิดเผยความลับ", url: "https://drive.google.com/file/d/1Z70yLLqQImLooV7o3zEqo9lXkCBxw2tS/view?usp=sharing" },
+    ]
+  },
 
-  new_customer: {
+  "New Customer": {
     name: "New Customer",
-    desc: "กระบวนการลูกค้าใหม่",
+    desc: "เอกสารของแผนก New Customer",
     icon: "🆕",
     sop: [
-      { code: "SOP-SE-01", title: "กระบวนการขาย Size XS", url: "#" },
-      { code: "SOP-SE-02", title: "กระบวนการ Demo", url: "#" },
-      { code: "SOP-SE-03", title: "กระบวนการนัดหมาย POC", url: "#" },
-      { code: "SOP-SE-04", title: "กระบวนการจัดทำใบเสนอราคา", url: "#" },
-      { code: "SOP-SE-05", title: "กระบวนการเรียกเก็บเงินจากลูกค้าและการทำสัญญา", url: "#" },
-      { code: "SOP-SE-06", title: "Manual การสร้าง Bill Payment สำหรับ Sales และ Renewal", url: "#" },
-      { code: "SOP-SE-07", title: "การจัดทำการ Up Sell ของฝ่าย Sale", url: "#" },
-      { code: "SOP-SC-01", title: "กระบวนการติดต่อลูกค้า", url: "#" },
-      { code: "SOP-SC-02", title: "การนัด Demo", url: "#" },
-      { code: "SOP-TC-01", title: "การ Proof of Concept (POC)", url: "#" }
+      { code: "SOP-SE-01", title: "กระบวนการขาย Size XS", url: "https://drive.google.com/file/d/1qYsA8IpXKWJuRz_KGmlghMKyYeVVwntf/view?usp=sharing" },
+      { code: "SOP-SE-02", title: "กระบวนการ Demo", url: "https://drive.google.com/file/d/1of0eRwh8ev206WiiNPd-LtBpobWXdTPm/view?usp=sharing" },
+      { code: "SOP-SE-03", title: "กระบวนการนัดหมาย POC", url: "https://drive.google.com/file/d/1o0EY2wivpewQ917BweL0ppumyLxzxsy8/view?usp=sharing" },
+      { code: "SOP-SE-04", title: "กระบวนการจัดทำใบเสนอราคา", url: "https://drive.google.com/file/d/1u7fgx0PRhVQCw37WW1h9--vYHHdaN0xV/view?usp=sharing" },
+      { code: "SOP-SE-05", title: "กระบวนการเรียกเก็บเงินจากลูกค้าและการทำสัญญา", url: "https://drive.google.com/file/d/1BePSI9Zu3DNQVnP8l6rPp5YZ49UO/view?usp=sharing" },
+      { code: "SOP-SE-06", title: "Manual การสร้าง Bill Payment สำหรับ Sales และ Renewal", url: "https://drive.google.com/file/d/1Hk3bqv3d4dE2a1b6c7d8e9f0g1h2i3jK/view?usp=sharing" },
+      { code: "SOP-SE-07", title: "การจัดทำการ Up Sell ของฝ่าย Sale", url: "https://drive.google.com/file/d/1n2m3b4v5c6x7z8a9s0dF1g2h3j4k5l6P/view?usp=sharing" },
     ],
     form: [
-      { code: "FM-SE-01", title: "ใบเสนอราคา", url: "#" },
-      { code: "FM-SE-02", title: "สัญญาการใช้บริการโปรแกรม Humansoft", url: "#" },
-      { code: "FM-SE-03", title: "Summary Report", url: "#" }
+      { code: "FM-SE-01", title: "ใบเสนอราคา", url: "" },
+      { code: "FM-SE-02", title: "สัญญาการใช้บริการโปรแกรม Humansoft", url: "" },
+      { code: "FM-SE-03", title: "Summary Report", url: "" },
     ]
   },
 
-  first_year: {
+  "First Year": {
     name: "First Year",
-    desc: "กระบวนการลูกค้าปีแรก",
-    icon: "📘",
+    desc: "เอกสารของแผนก First Year",
+    icon: "🎯",
     sop: [
-      { code: "SOP-IM-01", title: "การรับลูกค้าและการตั้งค่าระบบ (Get requirement / Set Up)", url: "#" },
-      { code: "SOP-IM-02", title: "การ Training และการสนับสนุนหลังเริ่มใช้งาน", url: "#" },
-      { code: "SOP-RN-01", title: "กระบวนการติดตามลูกค้าเพื่อต่ออายุสัญญา", url: "#" }
+      { code: "SOP-FY-01", title: "กระบวนการติดตั้งระบบ (Implement) Size XS", url: "https://drive.google.com/file/d/1EjA8d5q9nUQGqYJQ4nKp1n0a0a0a0a0/view?usp=sharing" },
+      { code: "SOP-FY-02", title: "กระบวนการติดตั้งระบบ (Implement) Size S", url: "https://drive.google.com/file/d/1n1n1n1n1n1n1n1n1n1n1n1n1n1n/view?usp=sharing" },
+      { code: "SOP-FY-03", title: "กระบวนการติดตั้งระบบ (Implement) Size M", url: "https://drive.google.com/file/d/1m1m1m1m1m1m1m1m1m1m1m1m1m1m/view?usp=sharing" },
+      { code: "SOP-FY-04", title: "กระบวนการติดตั้งระบบ (Implement) Size L", url: "https://drive.google.com/file/d/1l1l1l1l1l1l1l1l1l1l1l1l1l1l/view?usp=sharing" },
     ],
     form: [
-      { code: "FM-IM-01", title: "One Page", url: "#" },
-      { code: "FM-IM-02", title: "เอกสารขอเปลี่ยน Admin-Owner", url: "#" },
-      { code: "FM-IM-03", title: "ฟอร์มตรวจรับงานและลงนามรับรอง", url: "#" }
+      { code: "FM-FY-01", title: "Project Plan", url: "" },
+      { code: "FM-FY-02", title: "Kickoff Meeting Minutes", url: "" },
+      { code: "FM-FY-03", title: "UAT Sign-off", url: "" },
     ]
   },
 
-  old_customer: {
+  "Old Customer": {
     name: "Old Customer",
-    desc: "กระบวนการดูแลลูกค้าเดิม",
-    icon: "🔁",
-    sop: [
-      { code: "SOP-CS-01", title: "กระบวนการตอบกลับลูกค้า", url: "#" },
-      { code: "SOP-CS-02", title: "กระบวนการเปิด Ticket", url: "#" },
-      { code: "SOP-CS-03", title: "วิธีการเปิด Incident", url: "#" },
-      { code: "SOP-CS-04", title: "การจัดการและตรวจสอบ Incident", url: "#" },
-      { code: "SOP-CS-05", title: "กระบวนการรับ Requirement จากลูกค้า", url: "#" },
-      { code: "SOP-CS-06", title: "การจัดการข้อร้องเรียน (Complaint Management)", url: "#" },
-      { code: "SOP-CS-07", title: "กระบวนการดูแลลูกค้าต่อจากทีม Implementor", url: "#" },
-      { code: "SOP-CS-08", title: "การส่งข้อมูลระหว่าง Customer Service กับแผนกอื่น", url: "#" },
-      { code: "SOP-RN-02", title: "กระบวนการติดตามลูกค้าเพื่อต่ออายุสัญญา", url: "#" },
-      { code: "SOP-RN-03", title: "การจัดทำใบเสนอราคาและการทำสัญญา (Renewal)", url: "#" },
-      { code: "SOP-RN-04", title: "กระบวนการ Up Sell ของ Renewal", url: "#" }
-    ],
-    form: []
-  },
-
-  operator: {
-    name: "Operator",
-    desc: "กระบวนการทำงาน Operator",
-    icon: "🎧",
-    sop: [
-      { code: "SOP-OP-01", title: "กระบวนการรับลูกค้า", url: "#" },
-      { code: "SOP-OP-02", title: "กระบวนการเปิด Ticket", url: "#" },
-      { code: "SOP-OP-03", title: "การจัดการข้อร้องเรียนของทีม Operator", url: "#" },
-      { code: "SOP-OP-04", title: "การส่งข้อมูลระหว่าง Operator กับแผนกอื่น", url: "#" }
-    ],
-    form: []
-  },
-
-  product: {
-    name: "Product",
-    desc: "เอกสารฝ่ายพัฒนาผลิตภัณฑ์",
-    icon: "🧩",
-    sop: [
-      { code: "SOP-PD-01", title: "Product Development", url: "#" }
-    ],
-    form: [
-      { code: "FM-PD-01", title: "Open API Form", url: "#" },
-      { code: "FM-PD-02", title: "แบบลงนามรับทราบความเสี่ยง", url: "#" },
-      { code: "FM-PD-03", title: "หนังสือมอบสิทธิ์การทำงานร่วมกับระบบ HumanSoft", url: "#" }
-    ]
-  },
-
-  hr: {
-    name: "HR",
-    desc: "ฝ่ายทรัพยากรบุคคล",
+    desc: "เอกสารของแผนก Old Customer",
     icon: "👥",
     sop: [
-      { code: "SOP-HR-01", title: "การฝึกอบรม", url: "#" },
-      { code: "SOP-HR-02", title: "การสรรหาบุคคล (Recruitment)", url: "#" },
-      { code: "SOP-HR-03", title: "การจ่ายเงินเดือนพนักงาน (Payroll)", url: "#" },
-      { code: "SOP-HR-04", title: "การพ้นสภาพพนักงาน", url: "#" }
+      { code: "SOP-OC-01", title: "กระบวนการดูแลลูกค้าเก่า", url: "https://drive.google.com/file/d/1o1o1o1o1o1o1o1o1o1o1o1o1o1o/view?usp=sharing" },
+      { code: "SOP-OC-02", title: "กระบวนการรับ Change Request", url: "https://drive.google.com/file/d/1c1c1c1c1c1c1c1c1c1c1c1c1c1c/view?usp=sharing" },
     ],
     form: [
-      { code: "FM-HR-01", title: "ใบขออนุมัติอัตรา", url: "#" },
-      { code: "FM-HR-02", title: "ใบสมัครงาน", url: "#" },
-      { code: "FM-HR-03", title: "แบบฟอร์มการทำลายสื่อบันทึกข้อมูล", url: "#" },
-      { code: "FM-HR-04", title: "แบบประเมินผลทดลองปฏิบัติงาน", url: "#" },
-      { code: "FM-HR-05", title: "Job Description", url: "#" },
-      { code: "FM-HR-06", title: "เปลี่ยนตำแหน่งและโอนย้ายแผนก", url: "#" },
-      { code: "FM-HR-07", title: "แจ้งการปรับเงินเดือน", url: "#" },
-      { code: "FM-HR-08", title: "แบบประเมินการสอบสัมภาษณ์", url: "#" },
-      { code: "FM-HR-09", title: "แบบขอเปลี่ยนแปลงข้อมูลประวัติ", url: "#" },
-      { code: "FM-HR-10", title: "แบบฟอร์มลาออก", url: "#" }
+      { code: "FM-OC-01", title: "Change Request Form", url: "" },
     ]
   },
 
-  it: {
+  "Operator": {
+    name: "Operator",
+    desc: "เอกสารของแผนก Operator",
+    icon: "🎧",
+    sop: [
+      { code: "SOP-OP-01", title: "กระบวนการรับสาย/แชทและคัดกรองลูกค้า", url: "https://drive.google.com/file/d/1BHoeMi5LY_k8-zuwKeTa_qERwmtU68zv/view?usp=sharing" },
+      { code: "SOP-OP-02", title: "กระบวนการเปิด Ticket และบันทึกข้อมูลเบื้องต้น", url: "https://drive.google.com/file/d/1EdHkIX3GZ9Qh3VPOs9KIYJSLUd79CnYq/view?usp=sharing" },
+      { code: "SOP-OP-03", title: "การจัดการข้อร้องเรียน", url: "https://drive.google.com/file/d/1hVsMNR2_nXAQANSDjj6UcVOmKU80DFl2/view?usp=sharing" },
+      { code: "SOP-OP-04", title: "การส่งข้อมูล/โอนงานระหว่างแผนก", url: "https://drive.google.com/file/d/1xoaQ9rH3yRYwzXVHnk1L3BobOHokFBNs/view?usp=sharing" },
+    ],
+    form: [
+    ]
+  },
+
+  "Product": {
+    name: "Product",
+    desc: "เอกสารของแผนก Product",
+    icon: "🧩",
+    sop: [
+      { code: "SOP-PD-01", title: "กระบวนการพัฒนา Product", url: "https://drive.google.com/file/d/1p1p1p1p1p1p1p1p1p1p1p1p1p1p/view?usp=sharing" },
+      { code: "SOP-PD-02", title: "กระบวนการรับ Requirement", url: "https://drive.google.com/file/d/1r1r1r1r1r1r1r1r1r1r1r1r1r1r/view?usp=sharing" },
+    ],
+    form: [
+      { code: "FM-PD-01", title: "Requirement Form", url: "" },
+    ]
+  },
+
+  "HR": {
+    name: "HR",
+    desc: "เอกสารของแผนก HR",
+    icon: "🧑‍💼",
+    sop: [
+      { code: "SOP-HR-01", title: "กระบวนการรับพนักงานใหม่", url: "https://drive.google.com/file/d/1h1h1h1h1h1h1h1h1h1h1h1h1h1h/view?usp=sharing" },
+      { code: "SOP-HR-02", title: "กระบวนการลาออกและคืนทรัพย์สิน", url: "https://drive.google.com/file/d/1e1e1e1e1e1e1e1e1e1e1e1e1e1e/view?usp=sharing" },
+    ],
+    form: [
+    ]
+  },
+
+  "IT": {
     name: "IT",
-    desc: "ฝ่ายเทคโนโลยีสารสนเทศ",
+    desc: "เอกสารของแผนก IT",
     icon: "💻",
     sop: [
-      { code: "SOP-IT-01", title: "งาน IT Support", url: "#" }
+      { code: "SOP-IT-01", title: "กระบวนการแจ้งปัญหา/ขอใช้งานระบบ", url: "https://drive.google.com/file/d/1i1i1i1i1i1i1i1i1i1i1i1i1i1i/view?usp=sharing" },
+      { code: "SOP-IT-02", title: "การจัดการบัญชีผู้ใช้งานและสิทธิ์การเข้าถึง", url: "https://drive.google.com/file/d/1a1a1a1a1a1a1a1a1a1a1a1a1a1a/view?usp=sharing" },
     ],
-    form: []
+    form: [
+    ]
   },
 
-  document: {
-    name: "Document Control",
-    desc: "ระบบควบคุมเอกสาร",
+  "Document": {
+    name: "Document",
+    desc: "เอกสารของแผนก Document",
     icon: "📄",
     sop: [
-      { code: "SOP-DC-01", title: "Document Control", url: "#" }
+      { code: "SOP-DC-01", title: "กระบวนการควบคุมเอกสาร", url: "https://drive.google.com/file/d/1d0cD0cD0cD0cD0cD0cD0cD0cD0c/view?usp=sharing" },
     ],
     form: [
-      { code: "FM-DC-01", title: "ใบขอดำเนินการเรื่องเอกสาร (DAR)", url: "#" },
-      { code: "FM-DC-02", title: "DAR Log", url: "#" },
-      { code: "FM-DC-03", title: "Distribution List", url: "#" },
-      { code: "FM-DC-04", title: "ทะเบียนบันทึกคุณภาพ", url: "#" },
-      { code: "FM-DC-05", title: "ใบขออนุมัติทำลายบันทึกคุณภาพ", url: "#" }
+      { code: "FM-DC-01", title: "Document Request", url: "" },
     ]
   },
 
-  purchase: {
+  "Purchase": {
     name: "Purchase",
-    desc: "ฝ่ายจัดซื้อ",
+    desc: "เอกสารของแผนก Purchase",
     icon: "🛒",
     sop: [
-      { code: "SOP-PU-01", title: "Purchase", url: "#" }
+      { code: "SOP-PC-01", title: "กระบวนการจัดซื้อ", url: "https://drive.google.com/file/d/1purchasexxxxxxxxxxxxxxxxxxxxx/view?usp=sharing" },
     ],
     form: [
-      { code: "FM-PU-01", title: "ทะเบียนรายชื่อผู้ขาย", url: "#" },
-      { code: "FM-PU-02", title: "ใบคัดเลือกผู้ขาย", url: "#" },
-      { code: "FM-PU-03", title: "ใบประเมินผู้ขาย", url: "#" },
-      { code: "FM-PU-04", title: "ใบขออนุมัติจัดซื้อ", url: "#" },
-      { code: "FM-PU-05", title: "ใบสั่งซื้อ", url: "#" }
     ]
   },
 
-  qmr: {
-    name: "QMR",
-    desc: "Quality Management Representative",
+  "QMR ": {
+    name: "QMR ",
+    desc: "เอกสารของแผนก QMR ",
     icon: "✅",
     sop: [
-      { code: "SOP-MR-01", title: "Internal Audit", url: "#" },
-      { code: "SOP-MR-02", title: "Customer Complaint", url: "#" },
-      { code: "SOP-MR-03", title: "Corrective Action", url: "#" }
+      { code: "SOP-QMR-01", title: "การควบคุมคุณภาพและการปรับปรุง", url: "https://drive.google.com/file/d/1qmrxxxxxxxxxxxxxxxxxxxxxxxxxx/view?usp=sharing" },
     ],
     form: [
-      { code: "FM-MR-01", title: "แผนตรวจติดตามภายใน", url: "#" },
-      { code: "FM-MR-02", title: "ประกาศการตรวจติดตามภายใน", url: "#" },
-      { code: "FM-MR-03", title: "Checklist การตรวจติดตามภายใน", url: "#" },
-      { code: "FM-MR-04", title: "รายงานผลการตรวจติดตาม", url: "#" },
-      { code: "FM-MR-05", title: "CAR", url: "#" }
     ]
   },
 
-  isms: {
+  "ISMS": {
     name: "ISMS",
-    desc: "Information Security Management System",
+    desc: "เอกสารของแผนก ISMS",
     icon: "🔐",
     sop: [
-      { code: "SOP-ISMS-01", title: "Web Filtering", url: "#" },
-      { code: "SOP-ISMS-02", title: "Supplier Relationship Management", url: "#" },
-      { code: "SOP-ISMS-03", title: "Disposal of Media", url: "#" },
-      { code: "SOP-ISMS-04", title: "Mobile Device and BYOD", url: "#" },
-      { code: "SOP-ISMS-05", title: "Assets Management", url: "#" },
-      { code: "SOP-ISMS-06", title: "User Management", url: "#" },
-      { code: "SOP-ISMS-07", title: "System Testing", url: "#" },
-      { code: "SOP-ISMS-08", title: "Supply Relationship Management", url: "#" },
-      { code: "SOP-ISMS-09", title: "User Management", url: "#" },
-      { code: "SOP-ISMS-10", title: "User Management", url: "#" },
-      { code: "SOP-ISMS-11", title: "Cloud Management", url: "#" },
-      { code: "SOP-ISMS-12", title: "Software Installation", url: "#" }
+      { code: "SOP-ISMS-01", title: "การจัดการเหตุการณ์ความมั่นคงปลอดภัยสารสนเทศ", url: "https://drive.google.com/file/d/1ismsxxxxxxxxxxxxxxxxxxxxxxxxx/view?usp=sharing" },
+      { code: "SOP-ISMS-02", title: "การบริหารความเสี่ยงสารสนเทศ", url: "https://drive.google.com/file/d/1riskxxxxxxxxxxxxxxxxxxxxxxxxx/view?usp=sharing" },
     ],
-    form: []
-  }
-
+    form: [
+      { code: "FM-ISMS-01", title: "Incident Report Form", url: "" },
+      { code: "FM-ISMS-02", title: "Risk Register", url: "" },
+    ]
+  },
 };
+
+export default DOCUMENTS;
