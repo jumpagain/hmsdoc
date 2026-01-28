@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>HMS Document Portal</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="data.js"></script>
+  <!-- Cache busting: เปลี่ยนเลขท้ายเมื่ออัปเดต data.js -->
+  <script src="data.js?v=20260128"></script>
 </head>
 <body>
   <header class="topbar">
@@ -29,10 +30,28 @@
 
   <script>
     const grid = document.getElementById("deptGrid");
-    const keys = Object.keys(DOCUMENTS);
 
+    // 1) ดึง keys
+    let keys = Object.keys(window.DOCUMENTS || {});
+
+    // 2) กรองเฉพาะแผนกที่มีเอกสารจริง (มี SOP หรือ Form อย่างน้อย 1)
+    keys = keys.filter(k => {
+      const d = DOCUMENTS[k] || {};
+      const sopCount = (d.sop || []).length;
+      const formCount = (d.form || []).length;
+      return (sopCount + formCount) > 0;
+    });
+
+    // 3) บังคับให้ "Formที่ใช้บ่อย" อยู่การ์ดแรกเสมอ
+    keys.sort((a, b) => {
+      if (a === "Formที่ใช้บ่อย") return -1;
+      if (b === "Formที่ใช้บ่อย") return 1;
+      return a.localeCompare(b, "th");
+    });
+
+    // 4) Render
     grid.innerHTML = keys.map(k => {
-      const d = DOCUMENTS[k];
+      const d = DOCUMENTS[k] || {};
       const sopCount = (d.sop || []).length;
       const formCount = (d.form || []).length;
 
@@ -52,6 +71,11 @@
         </a>
       `;
     }).join("");
+
+    // 5) ถ้าไม่มีข้อมูลเลย
+    if (!grid.innerHTML.trim()) {
+      grid.innerHTML = `<div class="empty">ยังไม่มีข้อมูลเอกสาร</div>`;
+    }
   </script>
 </body>
 </html>
