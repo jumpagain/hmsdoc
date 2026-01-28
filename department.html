@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Department</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="data.js"></script>
+  <!-- ✅ cache busting ให้ตรงกับ index -->
+  <script src="data.js?v=20260128"></script>
 </head>
 <body>
   <header class="topbar">
@@ -30,23 +31,39 @@
       <a id="btnSop" class="btn" href="#">📘 SOP</a>
       <a id="btnForm" class="btn" href="#">🧾 Form</a>
     </div>
+
+    <div id="debug" class="empty" style="margin-top:14px; display:none;"></div>
   </main>
 
   <script>
     const params = new URLSearchParams(location.search);
-    const deptKey = params.get("dept");
-    const d = DOCUMENTS[deptKey];
+    const deptKey = params.get("dept") || "";
 
-    if (!d) {
+    // ✅ กันกรณี data.js ประกาศเป็น window.DOCUMENTS
+    const DOCS = window.DOCUMENTS || (typeof DOCUMENTS !== "undefined" ? DOCUMENTS : null);
+    const d = DOCS ? DOCS[deptKey] : null;
+
+    const sopBtn = document.getElementById("btnSop");
+    const formBtn = document.getElementById("btnForm");
+
+    if (!DOCS) {
+      document.getElementById("deptName").textContent = "โหลดข้อมูลไม่สำเร็จ";
+      const debug = document.getElementById("debug");
+      debug.style.display = "block";
+      debug.textContent = "ไม่พบ DOCUMENTS (data.js อาจยังเป็นเวอร์ชันเก่าหรือมี export default)";
+    } else if (!d) {
       document.getElementById("deptName").textContent = "ไม่พบแผนก";
+      const debug = document.getElementById("debug");
+      debug.style.display = "block";
+      debug.textContent = `dept ที่ส่งมา: "${deptKey}" แต่ไม่พบ key นี้ใน data.js`;
     } else {
       document.title = d.name || deptKey;
       document.getElementById("deptIcon").textContent = d.icon || "📁";
       document.getElementById("deptName").textContent = d.name || deptKey;
       document.getElementById("deptDesc").textContent = d.desc || "";
 
-      document.getElementById("btnSop").href = `docs.html?dept=${encodeURIComponent(deptKey)}&type=sop`;
-      document.getElementById("btnForm").href = `docs.html?dept=${encodeURIComponent(deptKey)}&type=form`;
+      sopBtn.href  = `docs.html?dept=${encodeURIComponent(deptKey)}&type=sop`;
+      formBtn.href = `docs.html?dept=${encodeURIComponent(deptKey)}&type=form`;
     }
   </script>
 </body>
