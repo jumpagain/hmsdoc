@@ -9,45 +9,72 @@
   <script src="https://script.google.com/macros/s/AKfycbwoxC25CaFW2_bswaItrq_OuajYh7gsA78AdLjAT5m0uGqXtdOHcvhyPQL_S8T27vEV/exec?format=js&v=20260223"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-logo">📚</div>
-      <div>
-        <div class="brand-title">HMS Document Portal</div>
-        <div class="brand-sub">เลือกแผนกเพื่อดู SOP / Form</div>
+  <div class="app">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sb-brand">
+        <div class="sb-logo">H</div>
+        <div>
+          <div class="sb-title">HumanSoft</div>
+          <div class="sb-sub">Document Portal</div>
+        </div>
       </div>
+
+      <nav class="sb-nav">
+        <a class="sb-item active" href="index.html"><span class="sb-ic">📚</span> Documents</a>
+        <a class="sb-item" href="#"><span class="sb-ic">📌</span> Release notes</a>
+        <a class="sb-item" href="#"><span class="sb-ic">🎧</span> Call Center</a>
+        <a class="sb-item" href="#"><span class="sb-ic">✅</span> Internal Audit</a>
+      </nav>
+    </aside>
+
+    <!-- RIGHT CONTENT -->
+    <div class="content">
+      <header class="appbar">
+        <div class="appbar-left">
+          <div>
+            <div class="page-title">Release notes</div>
+            <div class="page-sub">รายการอัปเดตเอกสาร พร้อมรายละเอียด SOP / Form</div>
+          </div>
+        </div>
+
+        <div class="appbar-right">
+          <a class="btn-contract" target="_blank"
+            href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
+            📄 ออกสัญญาอัตโนมัติ
+          </a>
+          <button class="iconbtn" type="button" title="Notification">🔔</button>
+        </div>
+      </header>
+
+      <main class="main">
+        <!-- ✅ สรุปจำนวนทั้งบริษัท -->
+        <div class="stats" id="stats"></div>
+
+        <!-- ✅ Search ทั้งระบบ -->
+        <div class="searchbar">
+          <div class="searchrow">
+            <input id="q" class="searchinput" placeholder="ค้นหาเอกสารทั้งระบบ: โค้ด / ชื่อเอกสาร / แผนก" autocomplete="off" />
+            <select id="typeFilter" class="searchselect" title="กรองประเภท">
+              <option value="all">ทั้งหมด</option>
+              <option value="sop">SOP</option>
+              <option value="form">Form</option>
+            </select>
+            <button id="btnClear" class="searchbtn" type="button">ล้าง</button>
+          </div>
+          <div id="searchHint" class="searchhint">พิมพ์เพื่อค้นหา — ระบบจะแสดงผลทันที</div>
+        </div>
+
+        <div id="searchResults" class="results" style="display:none;"></div>
+
+        <h2 class="section-title">แผนก</h2>
+        <div id="deptGrid" class="grid"></div>
+      </main>
     </div>
+  </div>
 
-    <a class="btn-contract" target="_blank"
-       href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
-      📄 ออกสัญญาอัตโนมัติ
-    </a>
-  </header>
-
-  <main class="container">
-    <!-- ✅ สรุปจำนวนทั้งบริษัท -->
-    <div class="stats" id="stats"></div>
-
-    <!-- ✅ Search ทั้งระบบ -->
-    <div class="searchbar">
-      <div class="searchrow">
-        <input id="q" class="searchinput" placeholder="ค้นหาเอกสารทั้งระบบ: โค้ด / ชื่อเอกสาร / แผนก" autocomplete="off" />
-        <select id="typeFilter" class="searchselect" title="กรองประเภท">
-          <option value="all">ทั้งหมด</option>
-          <option value="sop">SOP</option>
-          <option value="form">Form</option>
-        </select>
-        <button id="btnClear" class="searchbtn" type="button">ล้าง</button>
-      </div>
-      <div id="searchHint" class="searchhint">พิมพ์เพื่อค้นหา — ระบบจะแสดงผลทันที</div>
-    </div>
-
-    <div id="searchResults" class="results" style="display:none;"></div>
-
-    <h2 class="section-title">แผนก</h2>
-    <div id="deptGrid" class="grid"></div>
-  </main>
-
+  <!-- ✅ script เดิมของมึง (logic เดิม) -->
   <script>
     const grid = document.getElementById("deptGrid");
     const statsEl = document.getElementById("stats");
@@ -172,9 +199,7 @@
 
     function matches(item, q){
       if (!q) return true;
-      const hay = norm(
-        `${item.deptKey} ${item.deptName} ${item.type} ${item.code} ${item.title}`
-      );
+      const hay = norm(`${item.deptKey} ${item.deptName} ${item.type} ${item.code} ${item.title}`);
       return hay.includes(q);
     }
 
@@ -185,43 +210,45 @@
         return;
       }
 
-      const limited = list.slice(0, 50); // กันยาวเกิน
+      const limited = list.slice(0, 50);
       resultsEl.style.display = "block";
       resultsEl.innerHTML = `
-        <div class="results-head">
-          <div class="results-title">ผลลัพธ์ (${list.length}${list.length>50 ? "+":""})</div>
-          <div class="results-sub">แสดงสูงสุด 50 รายการ</div>
-        </div>
-        <div class="results-list">
-          ${limited.map(item => {
-            const label = item.type === "sop" ? "📘 SOP" : "🧾 Form";
-            const badgeVer = item.version ? `<span class="badge">v${item.version}</span>` : "";
-            const badgeUpd = item.updated ? `<span class="badge ghost">${item.updated}</span>` : "";
-            const right = item.url
-              ? `<a class="btn-download" href="${item.url}" target="_blank" rel="noopener">⬇ ดาวน์โหลด</a>`
-              : `<span class="btn-disabled">ยังไม่พร้อม</span>`;
-            const openDept = `docs.html?dept=${encodeURIComponent(item.deptKey)}&type=${encodeURIComponent(item.type)}`;
+        <div class="panel">
+          <div class="results-head">
+            <div class="results-title">ผลลัพธ์ (${list.length}${list.length>50 ? "+":""})</div>
+            <div class="results-sub">แสดงสูงสุด 50 รายการ</div>
+          </div>
+          <div class="results-list">
+            ${limited.map(item => {
+              const label = item.type === "sop" ? "📘 SOP" : "🧾 Form";
+              const badgeVer = item.version ? `<span class="badge">v${item.version}</span>` : "";
+              const badgeUpd = item.updated ? `<span class="badge ghost">${item.updated}</span>` : "";
+              const right = item.url
+                ? `<a class="btn-download" href="${item.url}" target="_blank" rel="noopener">⬇ ดาวน์โหลด</a>`
+                : `<span class="btn-disabled">ยังไม่พร้อม</span>`;
+              const openDept = `docs.html?dept=${encodeURIComponent(item.deptKey)}&type=${encodeURIComponent(item.type)}`;
 
-            return `
-              <div class="doc-card">
-                <div class="doc-left">
-                  <div class="doc-ic">${item.deptIcon}</div>
-                  <div>
-                    <div class="doc-title">${label} · ${item.deptName}</div>
-                    <div class="doc-sub">
-                      <span class="mono">${item.code}</span>
-                      <span class="sep">—</span>
-                      <span>${item.title}</span>
-                      ${badgeVer}
-                      ${badgeUpd}
+              return `
+                <div class="doc-card">
+                  <div class="doc-left">
+                    <div class="doc-ic">${item.deptIcon}</div>
+                    <div>
+                      <div class="doc-title">${label} · ${item.deptName}</div>
+                      <div class="doc-sub">
+                        <span class="mono">${item.code}</span>
+                        <span class="sep">—</span>
+                        <span>${item.title}</span>
+                        ${badgeVer}
+                        ${badgeUpd}
+                      </div>
+                      <a class="link-muted" href="${openDept}">ดูเอกสารในแผนก</a>
                     </div>
-                    <a class="link-muted" href="${openDept}">ดูเอกสารในแผนก</a>
                   </div>
+                  ${right}
                 </div>
-                ${right}
-              </div>
-            `;
-          }).join("")}
+              `;
+            }).join("")}
+          </div>
         </div>
       `;
     }
@@ -248,9 +275,8 @@
       renderResults(filtered);
     }
 
-    // boot
     if (!DOCS) {
-      statsEl.innerHTML = `<div class="empty">โหลดข้อมูลไม่สำเร็จ: ไม่พบ DOCUMENTS (data.js อาจยังเป็นเวอร์ชันเก่าหรือ export ไม่ถูก)</div>`;
+      statsEl.innerHTML = `<div class="empty">โหลดข้อมูลไม่สำเร็จ: ไม่พบ DOCUMENTS</div>`;
       grid.innerHTML = `<div class="empty">ยังไม่มีข้อมูลเอกสาร</div>`;
     } else {
       const keys = buildKeys();
