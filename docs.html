@@ -1,54 +1,171 @@
-
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="th">
 <head>
-<meta charset="UTF-8">
-<title>HMS Document Portal</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Documents</title>
+  <link rel="stylesheet" href="style_complete.css" />
+  <!-- ✅ cache busting ให้ตรงกับ index -->
+  <script src="https://script.google.com/macros/s/AKfycbwoxC25CaFW2_bswaItrq_OuajYh7gsA78AdLjAT5m0uGqXtdOHcvhyPQL_S8T27vEV/exec?format=js&v=20260223"></script>
 </head>
 <body>
+  <header class="topbar">
+    <a class="back" href="javascript:history.back()">← กลับ</a>
 
-<header class="topbar">
-  <h2>HMS Document Portal</h2>
-  <img class="logo" src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg">
-</header>
-
-<div class="container">
-
-  <div class="breadcrumb">Home › Departments › ISMS</div>
-
-  <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
-    <button class="button-primary">ออกสัญญาอัตโนมัติ</button>
-  </div>
-
-  <div class="summary">
-    <div class="summary-card">
-      <h4>แผนกทั้งหมด</h4>
-      <h2>12</h2>
+    <div class="brand small">
+      <div class="brand-logo" id="deptIcon">📁</div>
+      <div>
+        <div class="brand-title" id="pageTitle">Documents</div>
+        <div class="brand-sub" id="pageSub"></div>
+      </div>
     </div>
-    <div class="summary-card">
-      <h4>SOP ทั้งหมด</h4>
-      <h2>51</h2>
-    </div>
-    <div class="summary-card">
-      <h4>Form ทั้งหมด</h4>
-      <h2>85</h2>
-    </div>
-    <div class="summary-card">
-      <h4>เอกสารรวม</h4>
-      <h2>136</h2>
-    </div>
-  </div>
 
-  <div class="grid">
-    <div class="card">
-      <h3>ISMS</h3>
-      <p>เอกสาร ISO/IEC 27001</p>
-      <a href="#" class="button-download">ดูเอกสาร</a>
-    </div>
-  </div>
+    <div class="top-actions">
 
-</div>
+    <a class="btn-contract" target="_blank"
+       href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
+      📄 ออกสัญญาอัตโนมัติ
+    </a>
+  
+      <img class="hs-logo" src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg" alt="HumanSoft" loading="lazy" referrerpolicy="no-referrer" />
+    </div>
+  </header>
+  <nav class="breadcrumb" aria-label="Breadcrumb"><div id="breadcrumbContainer"></div></nav>
+
+
+  <main class="container">
+    <!-- ✅ Search ภายในแผนก -->
+    <div class="searchbar compact">
+      <div class="searchrow">
+        <input id="q" class="searchinput" placeholder="ค้นหาในหน้านี้: โค้ด / ชื่อเอกสาร" autocomplete="off" />
+        <button id="btnClear" class="searchbtn" type="button">ล้าง</button>
+      </div>
+      <div id="searchHint" class="searchhint">ค้นหาได้ทั้ง SOP / Form ตามหน้าที่เลือก</div>
+    </div>
+
+    <div id="docList" class="doc-list"></div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const deptKey = params.get("dept");
+    const type = params.get("type"); // sop | form
+
+    const DOCS = window.DOCUMENTS || (typeof DOCUMENTS !== "undefined" ? DOCUMENTS : null);
+    const d = DOCS ? DOCS[deptKey] : null;
+
+    const listEl = document.getElementById("docList");
+    const qEl = document.getElementById("q");
+    const btnClear = document.getElementById("btnClear");
+
+    function safeStr(v){ return (v ?? "").toString(); }
+    function norm(s){ return safeStr(s).trim().toLowerCase(); }
+
+    function buildDoc(item){
+      const url = norm(item.url);
+      const ver = safeStr(item.version || item.ver || "");
+      const upd = safeStr(item.updated || item.last_updated || "");
+
+      const right = url
+        ? `<a class="btn-download" href="${item.url}" target="_blank" rel="noopener">⬇ ดาวน์โหลด</a>`
+        : `<span class="btn-disabled">ยังไม่พร้อม</span>`;
+
+      const badgeVer = ver ? `<span class="badge">v${ver}</span>` : "";
+      const badgeUpd = upd ? `<span class="badge ghost">${upd}</span>` : "";
+
+      return `
+        <div class="doc-card">
+          <div class="doc-left">
+            <div class="doc-ic">${type === "sop" ? "📘" : "🧾"}</div>
+            <div>
+              <div class="doc-title">
+                <span class="mono">${safeStr(item.code)}</span>
+                <span class="sep"> </span>
+                <span>${safeStr(item.title)}</span>
+                ${badgeVer}
+                ${badgeUpd}
+              </div>
+            </div>
+          </div>
+          ${right}
+        </div>
+      `;
+    }
+
+    function render(list) {
+      if (!list || list.length === 0) {
+        listEl.innerHTML = '<div class="empty">ไม่มีรายการ</div>';
+        return;
+      }
+      listEl.innerHTML = list.map(buildDoc).join("");
+    }
+
+    function applySearch(master){
+      const q = norm(qEl.value);
+      if (!q){
+        render(master);
+        return;
+      }
+      const filtered = master.filter(item => {
+        const hay = norm(`${item.code} ${item.title} ${(item.version||item.ver||"")} ${(item.updated||item.last_updated||"")}`);
+        return hay.includes(q);
+      });
+      render(filtered);
+    }
+
+    if (!DOCS) {
+      document.getElementById("pageTitle").textContent = "โหลดข้อมูลไม่สำเร็จ";
+      listEl.innerHTML = '<div class="empty">ไม่พบ DOCUMENTS (data.js อาจยังเป็นเวอร์ชันเก่าหรือมี export default)</div>';
+    } else if (!d) {
+      document.getElementById("pageTitle").textContent = "ไม่พบแผนก";
+      listEl.innerHTML = `<div class="empty">ไม่พบข้อมูลของแผนก: ${deptKey || "-"}</div>`;
+    } else {
+      const label = (type === "sop") ? "SOP" : "Form";
+      document.title = `${label} - ${d.name || deptKey}`;
+      document.getElementById("deptIcon").textContent = d.icon || "📁";
+      document.getElementById("pageTitle").textContent = `${label} : ${d.name || deptKey}`;
+      document.getElementById("pageSub").textContent = d.desc || "";
+
+      const master = (type === "sop") ? (d.sop || []) : (d.form || []);
+      render(master);
+
+      qEl.addEventListener("input", () => applySearch(master));
+      btnClear.addEventListener("click", () => {
+        qEl.value = "";
+        applySearch(master);
+        qEl.focus();
+      });
+    }
+  </script>
+
+<script>
+(function(){
+  const el = document.getElementById('breadcrumbContainer');
+  if(!el) return;
+  const path = (location.pathname||'').toLowerCase();
+  const params = new URLSearchParams(location.search);
+  const deptKey = params.get('deptKey');
+  const sep = ' <span class="bc-sep" aria-hidden="true">›</span> ';
+  const link = (t,href)=>`<a class="bc-item" href="${href}">${t}</a>`;
+  const cur  = (t)=>`<span class="bc-item is-current" aria-current="page">${t}</span>`;
+  let html = link('Home','index.html');
+
+  if(path.includes('department.html')){
+    html += sep + cur('Departments');
+  }
+  if(path.includes('docs.html')){
+    html += sep + link('Departments','department.html');
+    if(deptKey && typeof DEPARTMENTS !== 'undefined'){
+      const d = DEPARTMENTS.find(x=>x.deptKey===deptKey);
+      if(d) html += sep + cur(d.name);
+      else  html += sep + cur(deptKey);
+    }else if(deptKey){
+      html += sep + cur(deptKey);
+    }
+  }
+  el.innerHTML = html;
+})();
+</script>
 
 </body>
 </html>
