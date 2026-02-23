@@ -27,6 +27,9 @@
   </header>
 
   <main class="container">
+    <!-- ✅ สรุปจำนวนในแผนก -->
+    <div class="stats compact" id="stats"></div>
+
     <div class="actions">
       <a id="btnSop" class="btn" href="#">📘 SOP</a>
       <a id="btnForm" class="btn" href="#">🧾 Form</a>
@@ -45,22 +48,42 @@
 
     const sopBtn = document.getElementById("btnSop");
     const formBtn = document.getElementById("btnForm");
+    const statsEl = document.getElementById("stats");
+
+    function renderStats(sopCount, formCount){
+      statsEl.innerHTML = `
+        <div class="stat">
+          <div class="stat-k">SOP</div>
+          <div class="stat-v">${sopCount}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-k">Form</div>
+          <div class="stat-v">${formCount}</div>
+        </div>
+      `;
+    }
 
     if (!DOCS) {
       document.getElementById("deptName").textContent = "โหลดข้อมูลไม่สำเร็จ";
       const debug = document.getElementById("debug");
       debug.style.display = "block";
       debug.textContent = "ไม่พบ DOCUMENTS (data.js อาจยังเป็นเวอร์ชันเก่าหรือมี export default)";
+      statsEl.innerHTML = "";
     } else if (!d) {
       document.getElementById("deptName").textContent = "ไม่พบแผนก";
       const debug = document.getElementById("debug");
       debug.style.display = "block";
       debug.textContent = `dept ที่ส่งมา: "${deptKey}" แต่ไม่พบ key นี้ใน data.js`;
+      statsEl.innerHTML = "";
     } else {
       document.title = d.name || deptKey;
       document.getElementById("deptIcon").textContent = d.icon || "📁";
       document.getElementById("deptName").textContent = d.name || deptKey;
       document.getElementById("deptDesc").textContent = d.desc || "";
+
+      const sopCount = (d.sop || []).length;
+      const formCount = (d.form || []).length;
+      renderStats(sopCount, formCount);
 
       sopBtn.href  = `docs.html?dept=${encodeURIComponent(deptKey)}&type=sop`;
       formBtn.href = `docs.html?dept=${encodeURIComponent(deptKey)}&type=form`;

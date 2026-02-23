@@ -27,6 +27,15 @@
   </header>
 
   <main class="container">
+    <!-- ✅ Search ภายในแผนก -->
+    <div class="searchbar compact">
+      <div class="searchrow">
+        <input id="q" class="searchinput" placeholder="ค้นหาในหน้านี้: โค้ด / ชื่อเอกสาร" autocomplete="off" />
+        <button id="btnClear" class="searchbtn" type="button">ล้าง</button>
+      </div>
+      <div id="searchHint" class="searchhint">ค้นหาได้ทั้ง SOP / Form ตามหน้าที่เลือก</div>
+    </div>
+
     <div id="docList" class="doc-list"></div>
   </main>
 
@@ -39,31 +48,62 @@
     const d = DOCS ? DOCS[deptKey] : null;
 
     const listEl = document.getElementById("docList");
+    const qEl = document.getElementById("q");
+    const btnClear = document.getElementById("btnClear");
+
+    function safeStr(v){ return (v ?? "").toString(); }
+    function norm(s){ return safeStr(s).trim().toLowerCase(); }
+
+    function buildDoc(item){
+      const url = norm(item.url);
+      const ver = safeStr(item.version || item.ver || "");
+      const upd = safeStr(item.updated || item.last_updated || "");
+
+      const right = url
+        ? `<a class="btn-download" href="${item.url}" target="_blank" rel="noopener">⬇ ดาวน์โหลด</a>`
+        : `<span class="btn-disabled">ยังไม่พร้อม</span>`;
+
+      const badgeVer = ver ? `<span class="badge">v${ver}</span>` : "";
+      const badgeUpd = upd ? `<span class="badge ghost">${upd}</span>` : "";
+
+      return `
+        <div class="doc-card">
+          <div class="doc-left">
+            <div class="doc-ic">${type === "sop" ? "📘" : "🧾"}</div>
+            <div>
+              <div class="doc-title">
+                <span class="mono">${safeStr(item.code)}</span>
+                <span class="sep"> </span>
+                <span>${safeStr(item.title)}</span>
+                ${badgeVer}
+                ${badgeUpd}
+              </div>
+            </div>
+          </div>
+          ${right}
+        </div>
+      `;
+    }
 
     function render(list) {
       if (!list || list.length === 0) {
         listEl.innerHTML = '<div class="empty">ไม่มีรายการ</div>';
         return;
       }
+      listEl.innerHTML = list.map(buildDoc).join("");
+    }
 
-      listEl.innerHTML = list.map(item => {
-        const url = (item.url || "").trim();
-        const right = url
-          ? `<a class="btn-download" href="${url}" target="_blank" rel="noopener">⬇ ดาวน์โหลด</a>`
-          : `<span class="btn-disabled">ยังไม่พร้อม</span>`;
-
-        return `
-          <div class="doc-card">
-            <div class="doc-left">
-              <div class="doc-ic">${type === "sop" ? "📘" : "🧾"}</div>
-              <div>
-                <div class="doc-title">${item.code} ${item.title}</div>
-              </div>
-            </div>
-            ${right}
-          </div>
-        `;
-      }).join("");
+    function applySearch(master){
+      const q = norm(qEl.value);
+      if (!q){
+        render(master);
+        return;
+      }
+      const filtered = master.filter(item => {
+        const hay = norm(`${item.code} ${item.title} ${(item.version||item.ver||"")} ${(item.updated||item.last_updated||"")}`);
+        return hay.includes(q);
+      });
+      render(filtered);
     }
 
     if (!DOCS) {
@@ -79,8 +119,15 @@
       document.getElementById("pageTitle").textContent = `${label} : ${d.name || deptKey}`;
       document.getElementById("pageSub").textContent = d.desc || "";
 
-      const list = (type === "sop") ? (d.sop || []) : (d.form || []);
-      render(list);
+      const master = (type === "sop") ? (d.sop || []) : (d.form || []);
+      render(master);
+
+      qEl.addEventListener("input", () => applySearch(master));
+      btnClear.addEventListener("click", () => {
+        qEl.value = "";
+        applySearch(master);
+        qEl.focus();
+      });
     }
   </script>
 </body>
