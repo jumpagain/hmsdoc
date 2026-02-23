@@ -10,7 +10,6 @@
 </head>
 <body>
   <header class="topbar">
-    <img class="hs-logo small" src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg" alt="HumanSoft" loading="lazy" referrerpolicy="no-referrer" />
     <a class="back" href="index.html">← หน้าหลัก</a>
 
     <div class="brand small">
@@ -25,7 +24,15 @@
        href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
       📄 ออกสัญญาอัตโนมัติ
     </a>
+  
+    <img class="hs-logo" src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg" alt="HumanSoft" loading="lazy" referrerpolicy="no-referrer" />
   </header>
+  <!-- ===== Breadcrumb Start ===== -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <div id="breadcrumbContainer"></div>
+  </nav>
+  <!-- ===== Breadcrumb End ===== -->
+
 
   <main class="container">
     <!-- ✅ สรุปจำนวนในแผนก -->
@@ -90,5 +97,34 @@
       formBtn.href = `docs.html?dept=${encodeURIComponent(deptKey)}&type=form`;
     }
   </script>
+
+<script>
+(function(){
+  const el = document.getElementById("breadcrumbContainer");
+  if(!el) return;
+
+  const params = new URLSearchParams(location.search);
+  const dept = params.get("dept") || "";
+
+  const parts = [];
+  const sep = () => '<span class="bc-sep" aria-hidden="true">›</span>';
+  const link = (t,h) => `<a class="bc-item" href="${h}">${t}</a>`;
+  const cur  = (t) => `<span class="bc-item is-current" aria-current="page">${t}</span>`;
+
+  parts.push(link("Home","index.html"));
+  parts.push(sep());
+
+  if(!dept){
+    parts.push(cur("Departments"));
+  }else{
+    parts.push(link("Departments","department.html"));
+    parts.push(sep());
+    parts.push(cur(dept));
+  }
+
+  el.innerHTML = parts.join("");
+})();
+</script>
+
 </body>
 </html>

@@ -1,14 +1,5 @@
 <!doctype html>
 <html lang="th">
-<nav class="breadcrumb" aria-label="Breadcrumb">
-  <a class="bc-item" href="index.html">Home</a>
-  <span class="bc-sep" aria-hidden="true">›</span>
-
-  <a class="bc-item" href="department.html">Departments</a>
-  <span class="bc-sep" aria-hidden="true">›</span>
-
-  <span class="bc-item is-current" aria-current="page">ISMS</span>
-</nav>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -19,7 +10,6 @@
 </head>
 <body>
   <header class="topbar">
-    <img class="hs-logo" src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg" alt="HumanSoft" loading="lazy" referrerpolicy="no-referrer" />
     <div class="brand">
       <div class="brand-logo">📚</div>
       <div>
@@ -32,7 +22,15 @@
        href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
       📄 ออกสัญญาอัตโนมัติ
     </a>
+  
+    <img class="hs-logo" src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg" alt="HumanSoft" loading="lazy" referrerpolicy="no-referrer" />
   </header>
+  <!-- ===== Breadcrumb Start ===== -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <div id="breadcrumbContainer"></div>
+  </nav>
+  <!-- ===== Breadcrumb End ===== -->
+
 
   <main class="container">
     <!-- ✅ สรุปจำนวนทั้งบริษัท -->
@@ -277,5 +275,14 @@
       });
     }
   </script>
+
+<script>
+(function(){
+  const el = document.getElementById("breadcrumbContainer");
+  if(!el) return;
+  el.innerHTML = '<span class="bc-item is-current" aria-current="page">Home</span>';
+})();
+</script>
+
 </body>
 </html>
