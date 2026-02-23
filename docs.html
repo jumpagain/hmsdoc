@@ -5,70 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Documents</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- ✅ cache busting -->
+  <!-- ✅ cache busting ให้ตรงกับ index -->
   <script src="https://script.google.com/macros/s/AKfycbwoxC25CaFW2_bswaItrq_OuajYh7gsA78AdLjAT5m0uGqXtdOHcvhyPQL_S8T27vEV/exec?format=js&v=20260223"></script>
 </head>
-
 <body>
-  <div class="app">
+  <header class="topbar">
+    <a class="back" href="javascript:history.back()">← กลับ</a>
 
-    <!-- LEFT SIDEBAR -->
-    <aside class="sidebar">
-      <div class="sb-brand">
-        <div class="sb-logo">H</div>
-        <div>
-          <div class="sb-title">HumanSoft</div>
-          <div class="sb-sub">Document Portal</div>
-        </div>
+    <div class="brand small">
+      <div class="brand-logo" id="deptIcon">📁</div>
+      <div>
+        <div class="brand-title" id="pageTitle">Documents</div>
+        <div class="brand-sub" id="pageSub"></div>
       </div>
-
-      <nav class="sb-nav">
-        <a class="sb-item" href="index.html"><span class="sb-ic">📚</span> Documents</a>
-        <a class="sb-item active" href="#"><span class="sb-ic">📄</span> Docs</a>
-        <a class="sb-item" href="#"><span class="sb-ic">📌</span> Release notes</a>
-      </nav>
-    </aside>
-
-    <!-- RIGHT CONTENT -->
-    <div class="content">
-
-      <!-- TOP APPBAR -->
-      <header class="appbar">
-        <div class="appbar-left">
-          <button class="iconbtn" type="button" title="Back" onclick="history.back()">←</button>
-
-          <div>
-            <div class="page-title" id="pageTitle">Documents</div>
-            <div class="page-sub" id="pageSub"></div>
-          </div>
-        </div>
-
-        <div class="appbar-right">
-          <div class="iconbtn" title="Department" id="deptIcon" style="font-size:16px;">📁</div>
-
-          <a class="btn-contract" target="_blank"
-             href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
-            📄 ออกสัญญาอัตโนมัติ
-          </a>
-        </div>
-      </header>
-
-      <main class="main">
-
-        <!-- ✅ Search ภายในแผนก -->
-        <div class="searchbar compact">
-          <div class="searchrow">
-            <input id="q" class="searchinput" placeholder="ค้นหาในหน้านี้: โค้ด / ชื่อเอกสาร" autocomplete="off" />
-            <button id="btnClear" class="searchbtn" type="button">ล้าง</button>
-          </div>
-          <div id="searchHint" class="searchhint">ค้นหาได้ทั้ง SOP / Form ตามหน้าที่เลือก</div>
-        </div>
-
-        <div id="docList" class="doc-list"></div>
-      </main>
-
     </div>
-  </div>
+
+    <a class="btn-contract" target="_blank"
+       href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
+      📄 ออกสัญญาอัตโนมัติ
+    </a>
+  </header>
+
+  <main class="container">
+    <!-- ✅ Search ภายในแผนก -->
+    <div class="searchbar compact">
+      <div class="searchrow">
+        <input id="q" class="searchinput" placeholder="ค้นหาในหน้านี้: โค้ด / ชื่อเอกสาร" autocomplete="off" />
+        <button id="btnClear" class="searchbtn" type="button">ล้าง</button>
+      </div>
+      <div id="searchHint" class="searchhint">ค้นหาได้ทั้ง SOP / Form ตามหน้าที่เลือก</div>
+    </div>
+
+    <div id="docList" class="doc-list"></div>
+  </main>
 
   <script>
     const params = new URLSearchParams(location.search);

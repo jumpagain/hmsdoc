@@ -9,52 +9,85 @@
   <script src="https://script.google.com/macros/s/AKfycbwoxC25CaFW2_bswaItrq_OuajYh7gsA78AdLjAT5m0uGqXtdOHcvhyPQL_S8T27vEV/exec?format=js&v=20260223"></script>
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <div class="sb-brand">
-        <div class="sb-logo">H</div>
-        <div>
-          <div class="sb-title">HumanSoft</div>
-          <div class="sb-sub">Document Portal</div>
-        </div>
+  <header class="topbar">
+    <a class="back" href="index.html">← หน้าหลัก</a>
+
+    <div class="brand small">
+      <div class="brand-logo" id="deptIcon">📁</div>
+      <div>
+        <div class="brand-title" id="deptName">Department</div>
+        <div class="brand-sub" id="deptDesc"></div>
       </div>
-      <nav class="sb-nav">
-        <a class="sb-item" href="index.html"><span class="sb-ic">📚</span> Documents</a>
-        <a class="sb-item active" href="#"><span class="sb-ic">🏷</span> Department</a>
-      </nav>
-    </aside>
-
-    <div class="content">
-      <header class="appbar">
-        <div class="appbar-left">
-          <div>
-            <div class="page-title" id="deptName">Department</div>
-            <div class="page-sub" id="deptDesc"></div>
-          </div>
-        </div>
-        <div class="appbar-right">
-          <a class="btn-contract" target="_blank"
-            href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
-            📄 ออกสัญญาอัตโนมัติ
-          </a>
-        </div>
-      </header>
-
-      <main class="main">
-        <div class="stats compact" id="stats"></div>
-
-        <div class="panel">
-          <div class="actions">
-            <a id="btnSop" class="btn-download" href="#">📘 SOP</a>
-            <a id="btnForm" class="btn-download" href="#">🧾 Form</a>
-          </div>
-
-          <div id="debug" class="empty" style="margin-top:14px; display:none;"></div>
-        </div>
-      </main>
     </div>
-  </div>
 
-  <!-- script เดิมของมึงเอาไว้เหมือนเดิม -->
+    <a class="btn-contract" target="_blank"
+       href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
+      📄 ออกสัญญาอัตโนมัติ
+    </a>
+  </header>
+
+  <main class="container">
+    <!-- ✅ สรุปจำนวนในแผนก -->
+    <div class="stats compact" id="stats"></div>
+
+    <div class="actions">
+      <a id="btnSop" class="btn" href="#">📘 SOP</a>
+      <a id="btnForm" class="btn" href="#">🧾 Form</a>
+    </div>
+
+    <div id="debug" class="empty" style="margin-top:14px; display:none;"></div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const deptKey = params.get("dept") || "";
+
+    // ✅ กันกรณี data.js ประกาศเป็น window.DOCUMENTS
+    const DOCS = window.DOCUMENTS || (typeof DOCUMENTS !== "undefined" ? DOCUMENTS : null);
+    const d = DOCS ? DOCS[deptKey] : null;
+
+    const sopBtn = document.getElementById("btnSop");
+    const formBtn = document.getElementById("btnForm");
+    const statsEl = document.getElementById("stats");
+
+    function renderStats(sopCount, formCount){
+      statsEl.innerHTML = `
+        <div class="stat">
+          <div class="stat-k">SOP</div>
+          <div class="stat-v">${sopCount}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-k">Form</div>
+          <div class="stat-v">${formCount}</div>
+        </div>
+      `;
+    }
+
+    if (!DOCS) {
+      document.getElementById("deptName").textContent = "โหลดข้อมูลไม่สำเร็จ";
+      const debug = document.getElementById("debug");
+      debug.style.display = "block";
+      debug.textContent = "ไม่พบ DOCUMENTS (data.js อาจยังเป็นเวอร์ชันเก่าหรือมี export default)";
+      statsEl.innerHTML = "";
+    } else if (!d) {
+      document.getElementById("deptName").textContent = "ไม่พบแผนก";
+      const debug = document.getElementById("debug");
+      debug.style.display = "block";
+      debug.textContent = `dept ที่ส่งมา: "${deptKey}" แต่ไม่พบ key นี้ใน data.js`;
+      statsEl.innerHTML = "";
+    } else {
+      document.title = d.name || deptKey;
+      document.getElementById("deptIcon").textContent = d.icon || "📁";
+      document.getElementById("deptName").textContent = d.name || deptKey;
+      document.getElementById("deptDesc").textContent = d.desc || "";
+
+      const sopCount = (d.sop || []).length;
+      const formCount = (d.form || []).length;
+      renderStats(sopCount, formCount);
+
+      sopBtn.href  = `docs.html?dept=${encodeURIComponent(deptKey)}&type=sop`;
+      formBtn.href = `docs.html?dept=${encodeURIComponent(deptKey)}&type=form`;
+    }
+  </script>
 </body>
 </html>
