@@ -1,65 +1,128 @@
-
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="th">
 <head>
-<meta charset="UTF-8">
-<title>HMS Document Portal</title>
-<link rel="stylesheet" href="style_FINAL.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Department</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- ✅ cache busting ให้ตรงกับ index -->
+  <script src="https://script.google.com/macros/s/AKfycbwoxC25CaFW2_bswaItrq_OuajYh7gsA78AdLjAT5m0uGqXtdOHcvhyPQL_S8T27vEV/exec?format=js&v=20260223"></script>
 </head>
 <body>
+  <header class="topbar">
+    <a class="back" href="index.html">← หน้าหลัก</a>
 
-<header class="topbar">
-  <div class="brand">
-    <img src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg"
-         alt="Humansoft"
-         class="brand-logo">
-    <div class="brand-text">
-      <h1>HMS Document Portal</h1>
-      <p>เลือกแผนกเพื่อดู SOP / Form</p>
+    <div class="brand small">
+      <div class="brand-logo" id="deptIcon">📁</div>
+      <div>
+        <div class="brand-title" id="deptName">Department</div>
+        <div class="brand-sub" id="deptDesc"></div>
+      </div>
     </div>
-  </div>
 
-  <button class="btn-contract">
-    ออกสัญญาอัตโนมัติ
-  </button>
+    <a class="btn-contract" target="_blank"
+       href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
+      📄 ออกสัญญาอัตโนมัติ
+    </a>
 </header>
+  <!-- ===== Breadcrumb Start ===== -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <div id="breadcrumbContainer"></div>
+  </nav>
+  <!-- ===== Breadcrumb End ===== -->
 
-<div class="container">
 
-  <div class="breadcrumb">Home › Departments</div>
+  <main class="container">
+    <!-- ✅ สรุปจำนวนในแผนก -->
+    <div class="stats compact" id="stats"></div>
 
-  <div class="summary">
-    <div class="summary-card">
-      <h4>แผนกทั้งหมด</h4>
-      <h2>12</h2>
+    <div class="actions">
+      <a id="btnSop" class="btn" href="#">📘 SOP</a>
+      <a id="btnForm" class="btn" href="#">🧾 Form</a>
     </div>
-    <div class="summary-card">
-      <h4>SOP ทั้งหมด</h4>
-      <h2>51</h2>
-    </div>
-    <div class="summary-card">
-      <h4>Form ทั้งหมด</h4>
-      <h2>85</h2>
-    </div>
-    <div class="summary-card">
-      <h4>เอกสารรวม</h4>
-      <h2>136</h2>
-    </div>
-  </div>
 
-  <div class="search-box">
-    ค้นหาเอกสาร...
-  </div>
+    <div id="debug" class="empty" style="margin-top:14px; display:none;"></div>
+  </main>
 
-  <div class="grid">
-    <div class="card">
-      <h3>ISMS</h3>
-      <p>เอกสาร ISO/IEC 27001</p>
-      <a href="#" class="button-download">ดูเอกสาร</a>
-    </div>
-  </div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const deptKey = params.get("dept") || "";
 
-</div>
+    // ✅ กันกรณี data.js ประกาศเป็น window.DOCUMENTS
+    const DOCS = window.DOCUMENTS || (typeof DOCUMENTS !== "undefined" ? DOCUMENTS : null);
+    const d = DOCS ? DOCS[deptKey] : null;
+
+    const sopBtn = document.getElementById("btnSop");
+    const formBtn = document.getElementById("btnForm");
+    const statsEl = document.getElementById("stats");
+
+    function renderStats(sopCount, formCount){
+      statsEl.innerHTML = `
+        <div class="stat">
+          <div class="stat-k">SOP</div>
+          <div class="stat-v">${sopCount}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-k">Form</div>
+          <div class="stat-v">${formCount}</div>
+        </div>
+      `;
+    }
+
+    if (!DOCS) {
+      document.getElementById("deptName").textContent = "โหลดข้อมูลไม่สำเร็จ";
+      const debug = document.getElementById("debug");
+      debug.style.display = "block";
+      debug.textContent = "ไม่พบ DOCUMENTS (data.js อาจยังเป็นเวอร์ชันเก่าหรือมี export default)";
+      statsEl.innerHTML = "";
+    } else if (!d) {
+      document.getElementById("deptName").textContent = "ไม่พบแผนก";
+      const debug = document.getElementById("debug");
+      debug.style.display = "block";
+      debug.textContent = `dept ที่ส่งมา: "${deptKey}" แต่ไม่พบ key นี้ใน data.js`;
+      statsEl.innerHTML = "";
+    } else {
+      document.title = d.name || deptKey;
+      document.getElementById("deptIcon").textContent = d.icon || "📁";
+      document.getElementById("deptName").textContent = d.name || deptKey;
+      document.getElementById("deptDesc").textContent = d.desc || "";
+
+      const sopCount = (d.sop || []).length;
+      const formCount = (d.form || []).length;
+      renderStats(sopCount, formCount);
+
+      sopBtn.href  = `docs.html?dept=${encodeURIComponent(deptKey)}&type=sop`;
+      formBtn.href = `docs.html?dept=${encodeURIComponent(deptKey)}&type=form`;
+    }
+  </script>
+
+<script>
+(function(){
+  const el = document.getElementById("breadcrumbContainer");
+  if(!el) return;
+
+  const params = new URLSearchParams(location.search);
+  const dept = params.get("dept") || "";
+
+  const parts = [];
+  const sep = () => '<span class="bc-sep" aria-hidden="true">›</span>';
+  const link = (t,h) => `<a class="bc-item" href="${h}">${t}</a>`;
+  const cur  = (t) => `<span class="bc-item is-current" aria-current="page">${t}</span>`;
+
+  parts.push(link("Home","index.html"));
+  parts.push(sep());
+
+  if(!dept){
+    parts.push(cur("Departments"));
+  }else{
+    parts.push(link("Departments","department.html"));
+    parts.push(sep());
+    parts.push(cur(dept));
+  }
+
+  el.innerHTML = parts.join("");
+})();
+</script>
 
 </body>
 </html>
