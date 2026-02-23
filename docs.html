@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Documents</title>
-  <link rel="stylesheet" href="style_complete.css" />
+  <link rel="stylesheet" href="style.css" />
   <!-- ✅ cache busting ให้ตรงกับ index -->
   <script src="https://script.google.com/macros/s/AKfycbwoxC25CaFW2_bswaItrq_OuajYh7gsA78AdLjAT5m0uGqXtdOHcvhyPQL_S8T27vEV/exec?format=js&v=20260223"></script>
 </head>
@@ -20,17 +20,18 @@
       </div>
     </div>
 
-    <div class="top-actions">
-
     <a class="btn-contract" target="_blank"
        href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
       📄 ออกสัญญาอัตโนมัติ
     </a>
   
-      <img class="hs-logo" src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg" alt="HumanSoft" loading="lazy" referrerpolicy="no-referrer" />
-    </div>
+    <img class="hs-logo" src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg" alt="HumanSoft" loading="lazy" referrerpolicy="no-referrer" />
   </header>
-  <nav class="breadcrumb" aria-label="Breadcrumb"><div id="breadcrumbContainer"></div></nav>
+  <!-- ===== Breadcrumb Start ===== -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <div id="breadcrumbContainer"></div>
+  </nav>
+  <!-- ===== Breadcrumb End ===== -->
 
 
   <main class="container">
@@ -140,30 +141,33 @@
 
 <script>
 (function(){
-  const el = document.getElementById('breadcrumbContainer');
+  const el = document.getElementById("breadcrumbContainer");
   if(!el) return;
-  const path = (location.pathname||'').toLowerCase();
-  const params = new URLSearchParams(location.search);
-  const deptKey = params.get('deptKey');
-  const sep = ' <span class="bc-sep" aria-hidden="true">›</span> ';
-  const link = (t,href)=>`<a class="bc-item" href="${href}">${t}</a>`;
-  const cur  = (t)=>`<span class="bc-item is-current" aria-current="page">${t}</span>`;
-  let html = link('Home','index.html');
 
-  if(path.includes('department.html')){
-    html += sep + cur('Departments');
+  const params = new URLSearchParams(location.search);
+  const dept = params.get("dept") || "";
+  const type = params.get("type") || ""; // sop | form
+
+  const parts = [];
+  const sep = () => '<span class="bc-sep" aria-hidden="true">›</span>';
+  const link = (t,h) => `<a class="bc-item" href="${h}">${t}</a>`;
+  const cur  = (t) => `<span class="bc-item is-current" aria-current="page">${t}</span>`;
+
+  parts.push(link("Home","index.html"));
+  parts.push(sep());
+  parts.push(link("Departments","department.html"));
+
+  if(dept){
+    parts.push(sep());
+    parts.push(link(dept, `department.html?dept=${encodeURIComponent(dept)}`));
   }
-  if(path.includes('docs.html')){
-    html += sep + link('Departments','department.html');
-    if(deptKey && typeof DEPARTMENTS !== 'undefined'){
-      const d = DEPARTMENTS.find(x=>x.deptKey===deptKey);
-      if(d) html += sep + cur(d.name);
-      else  html += sep + cur(deptKey);
-    }else if(deptKey){
-      html += sep + cur(deptKey);
-    }
-  }
-  el.innerHTML = html;
+
+  // Current page label
+  const label = type === "sop" ? "SOP" : (type === "form" ? "Form" : "Docs");
+  parts.push(sep());
+  parts.push(cur(label));
+
+  el.innerHTML = parts.join("");
 })();
 </script>
 
