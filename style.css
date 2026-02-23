@@ -320,3 +320,123 @@ a{ color:inherit; }
 .hs-logo{ height:22px; width:auto; display:block; }
 .hs-logo.small{ height:20px; }
 @media (max-width:520px){ .hs-logo{ height:18px; } }
+/* ===== Corporate polish (safe add-on) ===== */
+:root{
+  --brand: #ff6826;     /* Humansoft Orange */
+  --accent: #008dff;    /* Humansoft Blue */
+  --text: #0f172a;      /* slate-900 */
+  --muted: #475569;     /* slate-600 */
+  --border: rgba(15,23,42,.10);
+  --card: rgba(255,255,255,.86);
+  --glass: rgba(255,255,255,.72);
+  --shadow: 0 10px 30px rgba(15, 23, 42, .08);
+  --shadow2: 0 16px 44px rgba(15, 23, 42, .12);
+  --r: 16px;
+}
+
+body{
+  color: var(--text);
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(0,141,255,.10), transparent 60%),
+    radial-gradient(1000px 520px at 80% 0%, rgba(255,104,38,.10), transparent 55%),
+    #f6f8fb;
+}
+
+/* ===== Breadcrumb ===== */
+.breadcrumb{
+  max-width: 1100px;     /* ปรับให้เท่ากับคอนเทนต์หลักของนาย */
+  margin: 14px auto 6px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 6px 18px rgba(15,23,42,.06);
+}
+
+.bc-item{
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: .2px;
+  transition: transform .18s ease, color .18s ease, background-color .18s ease;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.bc-item:hover{
+  color: var(--accent);
+  background: rgba(0,141,255,.08);
+  transform: translateY(-1px);
+}
+
+.bc-item.is-current{
+  color: var(--text);
+  background: rgba(255,104,38,.10);
+  border: 1px solid rgba(255,104,38,.20);
+}
+
+.bc-sep{
+  color: rgba(71,85,105,.7);
+  font-weight: 800;
+}
+
+/* ===== Smooth hover for cards/buttons (generic) ===== */
+/* ตั้งใจทำให้ "ปลอดภัย" โดยจับ class ยอดฮิต: .card .item .btn a.button */
+.card, .item, .doc-card, .dept-card, .btn, a.button{
+  transition:
+    transform .22s cubic-bezier(.2,.8,.2,1),
+    box-shadow .22s cubic-bezier(.2,.8,.2,1),
+    border-color .22s ease,
+    background-color .22s ease;
+}
+
+.card:hover, .item:hover, .doc-card:hover, .dept-card:hover{
+  transform: translateY(-2px);
+  box-shadow: var(--shadow2);
+  border-color: rgba(0,141,255,.22);
+}
+
+/* ลื่นตอนกด */
+.card:active, .item:active, .doc-card:active, .dept-card:active,
+.btn:active, a.button:active{
+  transform: translateY(0px) scale(.99);
+}
+
+/* ===== Link + focus (ดูโปรมากขึ้น) ===== */
+a{
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover{ text-decoration: underline; }
+
+:focus-visible{
+  outline: 3px solid rgba(0,141,255,.25);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+/* ===== Corporate header line accent (ไม่เปลี่ยนโครง) ===== */
+h1, h2, .title{
+  position: relative;
+}
+h1::after, h2::after, .title::after{
+  content:"";
+  display:block;
+  width: 52px;
+  height: 4px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand), var(--accent));
+  opacity: .9;
+}
+
+/* เคารพคนเมารถ: ลด animation */
+@media (prefers-reduced-motion: reduce){
+  *{ transition: none !important; }
+}
