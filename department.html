@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Department</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- ============================================================ -->
+  <!-- 🔄 HYBRID DATA LOADING — Pure Static (No Apps Script)         -->
+  <!-- ============================================================ -->
+  <script src="data.js?v=20260427"></script>
+  <script src="sheet-loader.js?v=20260427"></script>
+  <script>
+    window.__DATA_SOURCE__ = "local";
+    window.__DATA_LOADED_AT__ = new Date().toISOString();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="back" href="index.html">← หน้าหลัก</a>
+
+    <div class="brand small">
+      <div class="brand-logo" id="deptIcon">📁</div>
+      <div>
+        <div class="brand-title" id="deptName">Department</div>
+        <div class="brand-sub" id="deptDesc"></div>
+      </div>
+    </div>
+
+    <a class="btn-contract" target="_blank"
+       href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
+      📄 ออกสัญญาอัตโนมัติ
+    </a>
+</header>
+  <!-- ===== Breadcrumb Start ===== -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <div id="breadcrumbContainer"></div>
+  </nav>
+  <!-- ===== Breadcrumb End ===== -->
+
+
+  <main class="container">
+    <!-- ✅ สรุปจำนวนในแผนก -->
+    <div class="stats compact" id="stats"></div>
+
+    <div class="actions">
+      <a id="btnSop" class="btn" href="#">📘 SOP</a>
+      <a id="btnForm" class="btn" href="#">🧾 Form</a>
+    </div>
+
+    <div id="debug" class="empty" style="margin-top:14px; display:none;"></div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const deptKey = params.get("dept") || "";
+
+    let DOCS = window.DOCUMENTS || (typeof DOCUMENTS !== "undefined" ? DOCUMENTS : null);
+
+    const sopBtn = document.getElementById("btnSop");
+    const formBtn = document.getElementById("btnForm");
+    const statsEl = document.getElementById("stats");
+
+    function renderStats(sopCount, formCount){
+      statsEl.innerHTML = `
+        <div class="stat">
+          <div class="stat-k">SOP</div>
+          <div class="stat-v">${sopCount}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-k">Form</div>
+          <div class="stat-v">${formCount}</div>
+        </div>
+      `;
+    }
+
+    function renderAll(){
+      const d = DOCS ? DOCS[deptKey] : null;
+      const debug = document.getElementById("debug");
+
+      if (!DOCS) {
+        document.getElementById("deptName").textContent = "โหลดข้อมูลไม่สำเร็จ";
+        debug.style.display = "block";
+        debug.textContent = "ไม่พบ DOCUMENTS";
+        statsEl.innerHTML = "";
+      } else if (!d) {
+        document.getElementById("deptName").textContent = "ไม่พบแผนก";
+        debug.style.display = "block";
+        debug.textContent = `dept ที่ส่งมา: "${deptKey}" แต่ไม่พบ key นี้ใน Sheet`;
+        statsEl.innerHTML = "";
+      } else {
+        debug.style.display = "none";
+        document.title = d.name || deptKey;
+        document.getElementById("deptIcon").textContent = d.icon || "📁";
+        document.getElementById("deptName").textContent = d.name || deptKey;
+        document.getElementById("deptDesc").textContent = d.desc || "";
+
+        const sopCount = (d.sop || []).length;
+        const formCount = (d.form || []).length;
+        renderStats(sopCount, formCount);
+
+        sopBtn.href  = `docs.html?dept=${encodeURIComponent(deptKey)}&type=sop`;
+        formBtn.href = `docs.html?dept=${encodeURIComponent(deptKey)}&type=form`;
+      }
+    }
+
+    // First render (local data.js)
+    renderAll();
+
+    // Async fetch จาก Google Sheet → re-render เมื่อสำเร็จ
+    if (window.HMSDocLoader && typeof window.HMSDocLoader.load === "function") {
+      window.HMSDocLoader.load()
+        .then(liveDocs => {
+          DOCS = liveDocs;
+          window.DOCUMENTS = liveDocs;
+          window.__DATA_SOURCE__ = "live";
+          window.__DATA_LOADED_AT__ = new Date().toISOString();
+          renderAll();
+          console.log("[HMSDoc] ✅ Live data loaded from Google Sheet");
+        })
+        .catch(err => console.warn("[HMSDoc] ⚠️ Sheet fetch failed → ใช้ local data.js ต่อ", err));
+    }
+  </script>
+
+<script>
+(function(){
+  const el = document.getElementById("breadcrumbContainer");
+  if(!el) return;
+
+  const params = new URLSearchParams(location.search);
+  const dept = params.get("dept") || "";
+
+  const parts = [];
+  const sep = () => '<span class="bc-sep" aria-hidden="true">›</span>';
+  const link = (t,h) => `<a class="bc-item" href="${h}">${t}</a>`;
+  const cur  = (t) => `<span class="bc-item is-current" aria-current="page">${t}</span>`;
+
+  parts.push(link("Home","index.html"));
+  parts.push(sep());
+
+  if(!dept){
+    parts.push(cur("Departments"));
+  }else{
+    parts.push(link("Departments","department.html"));
+    parts.push(sep());
+    parts.push(cur(dept));
+  }
+
+  el.innerHTML = parts.join("");
+})();
+</script>
+
+</body>
+</html>

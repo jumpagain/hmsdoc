@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HMS Document Portal</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- ============================================================ -->
+  <!-- 🔄 HYBRID DATA LOADING — Pure Static (No Apps Script)         -->
+  <!--    1) data.js (local)        = baseline render                -->
+  <!--    2) sheet-loader.js (live) = async fetch CSV จาก Sheet      -->
+  <!--    3) re-render หลังโหลด    = ข้อมูลล่าสุดเสมอ              -->
+  <!-- ============================================================ -->
+  <script src="data.js?v=20260427"></script>
+  <script src="sheet-loader.js?v=20260427"></script>
+  <script>
+    window.__DATA_SOURCE__ = "local";
+    window.__DATA_LOADED_AT__ = new Date().toISOString();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo"><img class="brand-img" src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg" alt="Humansoft" loading="lazy" referrerpolicy="no-referrer" /></div>
+      <div>
+        <div class="brand-title">HMS Document Portal</div>
+        <div class="brand-sub">เลือกแผนกเพื่อดู SOP / Form</div>
+      </div>
+    </div>
+
+    <a class="btn-contract" target="_blank"
+       href="https://script.google.com/macros/s/AKfycbyk6iSvJttfwoQ1PmQD_h-_3Cxkp8AEmJtpWrxV7bpDMcEc3YlZYMUVerOeUfLD35jv/exec">
+      📄 ออกสัญญาอัตโนมัติ
+    </a>
+</header>
+  <!-- ===== Breadcrumb Start ===== -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <div id="breadcrumbContainer"></div>
+  </nav>
+  <!-- ===== Breadcrumb End ===== -->
+
+
+  <main class="container">
+    <!-- 🟢 Data Freshness Indicator -->
+    <div id="dataStatus" style="display:flex;align-items:center;gap:10px;font-size:13px;margin:8px 0 14px 0;padding:8px 12px;border-radius:8px;background:#f6f8fa;border:1px solid #e1e4e8;">
+      <span id="dataStatusDot" style="width:10px;height:10px;border-radius:50%;background:#999;"></span>
+      <span id="dataStatusText">กำลังตรวจสอบแหล่งข้อมูล...</span>
+      <button id="btnHardRefresh" type="button" style="margin-left:auto;padding:4px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;">🔄 Refresh</button>
+    </div>
+
+    <!-- ✅ สรุปจำนวนทั้งบริษัท -->
+    <div class="stats" id="stats"></div>
+
+    <!-- ✅ Search ทั้งระบบ -->
+    <div class="searchbar">
+      <div class="searchrow">
+        <input id="q" class="searchinput" placeholder="ค้นหาเอกสารทั้งระบบ: โค้ด / ชื่อเอกสาร / แผนก" autocomplete="off" />
+        <select id="typeFilter" class="searchselect" title="กรองประเภท">
+          <option value="all">ทั้งหมด</option>
+          <option value="sop">SOP</option>
+          <option value="form">Form</option>
+        </select>
+        <button id="btnClear" class="searchbtn" type="button">ล้าง</button>
+      </div>
+      <div id="searchHint" class="searchhint">พิมพ์เพื่อค้นหา — ระบบจะแสดงผลทันที</div>
+    </div>
+
+    <div id="searchResults" class="results" style="display:none;"></div>
+
+    <h2 class="section-title">แผนก</h2>
+    <div id="deptGrid" class="grid"></div>
+  </main>
+
+  <script>
+    const grid = document.getElementById("deptGrid");
+    const statsEl = document.getElementById("stats");
+    const qEl = document.getElementById("q");
+    const typeFilterEl = document.getElementById("typeFilter");
+    const resultsEl = document.getElementById("searchResults");
+    const btnClear = document.getElementById("btnClear");
+
+    // ใช้ let แทน const — จะ reassign หลัง sheet-loader fetch สำเร็จ
+    let DOCS = window.DOCUMENTS || (typeof DOCUMENTS !== "undefined" ? DOCUMENTS : null);
+
+    function safeStr(v){ return (v ?? "").toString(); }
+    function norm(s){ return safeStr(s).trim().toLowerCase(); }
+
+    function buildKeys() {
+      let keys = Object.keys(DOCS || {});
+      keys = keys.filter(k => {
+        const d = DOCS[k] || {};
+        const sopCount = (d.sop || []).length;
+        const formCount = (d.form || []).length;
+        return (sopCount + formCount) > 0;
+      });
+
+      keys.sort((a, b) => {
+        if (a === "Formที่ใช้บ่อย") return -1;
+        if (b === "Formที่ใช้บ่อย") return 1;
+        return a.localeCompare(b, "th");
+      });
+
+      return keys;
+    }
+
+    function renderDeptGrid(keys) {
+      grid.innerHTML = keys.map(k => {
+        const d = DOCS[k] || {};
+        const sopCount = (d.sop || []).length;
+        const formCount = (d.form || []).length;
+
+        return `
+          <a class="card" href="department.html?dept=${encodeURIComponent(k)}">
+            <div class="card-head">
+              <div class="card-ic">${d.icon || "📁"}</div>
+              <div>
+                <div class="card-title">${d.name || k}</div>
+                <div class="card-desc">${d.desc || ""}</div>
+              </div>
+            </div>
+            <div class="card-meta">
+              <span class="pill">SOP ${sopCount}</span>
+              <span class="pill">Form ${formCount}</span>
+            </div>
+          </a>
+        `;
+      }).join("");
+
+      if (!grid.innerHTML.trim()) {
+        grid.innerHTML = `<div class="empty">ยังไม่มีข้อมูลเอกสาร</div>`;
+      }
+    }
+
+    function computeStats(keys){
+      let totalSop = 0, totalForm = 0;
+      keys.forEach(k => {
+        const d = DOCS[k] || {};
+        totalSop += (d.sop || []).length;
+        totalForm += (d.form || []).length;
+      });
+      return { deptCount: keys.length, totalSop, totalForm, totalDocs: totalSop + totalForm };
+    }
+
+    function renderStats(s){
+      statsEl.innerHTML = `
+        <div class="stat">
+          <div class="stat-k">แผนกทั้งหมด</div>
+          <div class="stat-v">${s.deptCount}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-k">SOP ทั้งหมด</div>
+          <div class="stat-v">${s.totalSop}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-k">Form ทั้งหมด</div>
+          <div class="stat-v">${s.totalForm}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-k">เอกสารรวม</div>
+          <div class="stat-v">${s.totalDocs}</div>
+        </div>
+      `;
+    }
+
+    function buildAllDocs(keys){
+      const out = [];
+      keys.forEach(k => {
+        const d = DOCS[k] || {};
+        const deptName = d.name || k;
+        const deptIcon = d.icon || "📁";
+        (d.sop || []).forEach(item => out.push({
+          type: "sop",
+          deptKey: k,
+          deptName,
+          deptIcon,
+          code: safeStr(item.code),
+          title: safeStr(item.title),
+          url: safeStr(item.url),
+          version: safeStr(item.version || item.ver || ""),
+          updated: safeStr(item.updated || item.last_updated || "")
+        }));
+        (d.form || []).forEach(item => out.push({
+          type: "form",
+          deptKey: k,
+          deptName,
+          deptIcon,
+          code: safeStr(item.code),
+          title: safeStr(item.title),
+          url: safeStr(item.url),
+          version: safeStr(item.version || item.ver || ""),
+          updated: safeStr(item.updated || item.last_updated || "")
+        }));
+      });
+      return out;
+    }
+
+    function matches(item, q){
+      if (!q) return true;
+      const hay = norm(
+        `${item.deptKey} ${item.deptName} ${item.type} ${item.code} ${item.title}`
+      );
+      return hay.includes(q);
+    }
+
+    function renderResults(list){
+      if (!list.length){
+        resultsEl.style.display = "block";
+        resultsEl.innerHTML = `<div class="empty">ไม่พบผลลัพธ์</div>`;
+        return;
+      }
+
+      const limited = list.slice(0, 50); // กันยาวเกิน
+      resultsEl.style.display = "block";
+      resultsEl.innerHTML = `
+        <div class="results-head">
+          <div class="results-title">ผลลัพธ์ (${list.length}${list.length>50 ? "+":""})</div>
+          <div class="results-sub">แสดงสูงสุด 50 รายการ</div>
+        </div>
+        <div class="results-list">
+          ${limited.map(item => {
+            const label = item.type === "sop" ? "📘 SOP" : "🧾 Form";
+            const badgeVer = item.version ? `<span class="badge">v${item.version}</span>` : "";
+            const badgeUpd = item.updated ? `<span class="badge ghost">${item.updated}</span>` : "";
+            const right = item.url
+              ? `<a class="btn-download" href="${item.url}" target="_blank" rel="noopener">👁 ดูเอกสาร</a>`
+              : `<span class="btn-disabled">ยังไม่พร้อม</span>`;
+            const openDept = `docs.html?dept=${encodeURIComponent(item.deptKey)}&type=${encodeURIComponent(item.type)}`;
+
+            return `
+              <div class="doc-card">
+                <div class="doc-left">
+                  <div class="doc-ic">${item.deptIcon}</div>
+                  <div>
+                    <div class="doc-title">${label} · ${item.deptName}</div>
+                    <div class="doc-sub">
+                      <span class="mono">${item.code}</span>
+                      <span class="sep">—</span>
+                      <span>${item.title}</span>
+                      ${badgeVer}
+                      ${badgeUpd}
+                    </div>
+                    <a class="link-muted" href="${openDept}">ดูเอกสารในแผนก</a>
+                  </div>
+                </div>
+                ${right}
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function runSearch(){
+      const keys = buildKeys();
+      const allDocs = buildAllDocs(keys);
+
+      const q = norm(qEl.value);
+      const typeFilter = typeFilterEl.value;
+
+      const filtered = allDocs.filter(item => {
+        const typeOk = (typeFilter === "all") || (item.type === typeFilter);
+        return typeOk && matches(item, q);
+      });
+
+      const hasQuery = q.length > 0 || typeFilter !== "all";
+
+      if (!hasQuery){
+        resultsEl.style.display = "none";
+        resultsEl.innerHTML = "";
+        return;
+      }
+      renderResults(filtered);
+    }
+
+    // ====== Render orchestration (callable หลายครั้ง — re-render หลัง Sheet load) ======
+    function renderAll() {
+      if (!DOCS) {
+        statsEl.innerHTML = `<div class="empty">โหลดข้อมูลไม่สำเร็จ: ไม่พบ DOCUMENTS</div>`;
+        grid.innerHTML = `<div class="empty">ยังไม่มีข้อมูลเอกสาร</div>`;
+        return;
+      }
+      const keys = buildKeys();
+      renderStats(computeStats(keys));
+      renderDeptGrid(keys);
+      runSearch(); // refresh search results ถ้า user พิมพ์ค้นไว้แล้ว
+    }
+
+    // ====== Setup listeners ครั้งเดียว ======
+    qEl.addEventListener("input", runSearch);
+    typeFilterEl.addEventListener("change", runSearch);
+    btnClear.addEventListener("click", () => {
+      qEl.value = "";
+      typeFilterEl.value = "all";
+      runSearch();
+      qEl.focus();
+    });
+
+    // First render (ใช้ local data.js)
+    renderAll();
+
+    // ====== Async fetch จาก Google Sheet → re-render เมื่อสำเร็จ ======
+    if (window.HMSDocLoader && typeof window.HMSDocLoader.load === "function") {
+      window.HMSDocLoader.load()
+        .then(liveDocs => {
+          DOCS = liveDocs;
+          window.DOCUMENTS = liveDocs;
+          window.__DATA_SOURCE__ = "live";
+          window.__DATA_LOADED_AT__ = new Date().toISOString();
+          renderAll();
+          // อัปเดต freshness indicator
+          if (typeof window.__updateDataStatus__ === "function") window.__updateDataStatus__();
+          console.log("[HMSDoc] ✅ Live data loaded from Google Sheet");
+        })
+        .catch(err => {
+          console.warn("[HMSDoc] ⚠️ Sheet fetch failed → ใช้ local data.js ต่อ", err);
+        });
+    }
+  </script>
+
+<script>
+(function(){
+  const el = document.getElementById("breadcrumbContainer");
+  if(!el) return;
+  el.innerHTML = '<span class="bc-item is-current" aria-current="page">Home</span>';
+})();
+</script>
+
+<!-- 🟢 Data Freshness Indicator Logic -->
+<script>
+(function(){
+  var dot = document.getElementById("dataStatusDot");
+  var txt = document.getElementById("dataStatusText");
+  var btn = document.getElementById("btnHardRefresh");
+  if (!dot || !txt) return;
+
+  function fmtTime(d){
+    return String(d.getHours()).padStart(2,"0") + ":" +
+           String(d.getMinutes()).padStart(2,"0") + ":" +
+           String(d.getSeconds()).padStart(2,"0");
+  }
+
+  // Expose globally — เรียกซ้ำได้หลัง Sheet load สำเร็จ
+  window.__updateDataStatus__ = function(){
+    var src = window.__DATA_SOURCE__ || "local";
+    var at  = window.__DATA_LOADED_AT__ ? new Date(window.__DATA_LOADED_AT__) : new Date();
+    var time = fmtTime(at);
+    if (src === "live") {
+      dot.style.background = "#22c55e";
+      txt.innerHTML = '🟢 <strong>Live</strong> — ข้อมูลล่าสุดจาก Google Sheet (อัปเดต ' + time + ')';
+    } else {
+      dot.style.background = "#f59e0b";
+      txt.innerHTML = '🟡 <strong>กำลังโหลดจาก Google Sheet...</strong> ใช้ local cache ชั่วคราว (โหลด ' + time + ')';
+    }
+  };
+
+  // Initial state
+  window.__updateDataStatus__();
+
+  if (btn) {
+    btn.addEventListener("click", function(){
+      // Hard refresh — bypass HTTP cache
+      location.reload(true);
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
