@@ -8,9 +8,6 @@
 
   <!-- ============================================================ -->
   <!-- 🔄 HYBRID DATA LOADING — Pure Static (No Apps Script)         -->
-  <!--    1) data.js (local)        = baseline render                -->
-  <!--    2) sheet-loader.js (live) = async fetch CSV จาก Sheet      -->
-  <!--    3) re-render หลังโหลด    = ข้อมูลล่าสุดเสมอ              -->
   <!-- ============================================================ -->
   <script src="data.js?v=20260427"></script>
   <script src="sheet-loader.js?v=20260427"></script>
@@ -20,58 +17,123 @@
   </script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-logo"><img class="brand-img" src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg" alt="Humansoft" loading="lazy" referrerpolicy="no-referrer" /></div>
-      <div>
-        <div class="brand-title">HMS Document Portal</div>
-        <div class="brand-sub">เลือกแผนกเพื่อดู SOP / Form</div>
+  <div class="container">
+
+    <!-- ===== TOP BAR ===== -->
+    <header class="topbar">
+      <a class="brand" href="index.html">
+        <img class="brand-img" src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg" alt="Humansoft" loading="lazy" referrerpolicy="no-referrer" />
+        <div class="brand-divider"></div>
+        <div class="brand-text">
+          <div class="brand-title">Document Portal</div>
+          <div class="brand-sub">Internal Knowledge Base</div>
+        </div>
+      </a>
+      <div class="topbar-right">
+        <div id="liveBadge" class="live-badge local"><span id="liveBadgeText">Loading…</span></div>
+        <a class="btn-contract" target="_blank" rel="noopener"
+           href="https://script.google.com/macros/s/AKfycbzgnGFsiTBcq9FoY0wa6mUWNJU2sAIti01YIjioEtryLD1NN9-EPfGOq-lP0rjK-FeP/exec">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          ออกสัญญาอัตโนมัติ
+        </a>
       </div>
-    </div>
+    </header>
 
-    <a class="btn-contract" target="_blank"
-       href="https://script.google.com/macros/s/AKfycbyk6iSvJttfwoQ1PmQD_h-_3Cxkp8AEmJtpWrxV7bpDMcEc3YlZYMUVerOeUfLD35jv/exec">
-      📄 ออกสัญญาอัตโนมัติ
-    </a>
-</header>
-  <!-- ===== Breadcrumb Start ===== -->
-  <nav class="breadcrumb" aria-label="Breadcrumb">
-    <div id="breadcrumbContainer"></div>
-  </nav>
-  <!-- ===== Breadcrumb End ===== -->
+    <!-- ===== Breadcrumb ===== -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <div id="breadcrumbContainer"></div>
+    </nav>
 
-
-  <main class="container">
-    <!-- 🟢 Data Freshness Indicator -->
-    <div id="dataStatus" style="display:flex;align-items:center;gap:10px;font-size:13px;margin:8px 0 14px 0;padding:8px 12px;border-radius:8px;background:#f6f8fa;border:1px solid #e1e4e8;">
-      <span id="dataStatusDot" style="width:10px;height:10px;border-radius:50%;background:#999;"></span>
-      <span id="dataStatusText">กำลังตรวจสอบแหล่งข้อมูล...</span>
-      <button id="btnHardRefresh" type="button" style="margin-left:auto;padding:4px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;">🔄 Refresh</button>
-    </div>
-
-    <!-- ✅ สรุปจำนวนทั้งบริษัท -->
-    <div class="stats" id="stats"></div>
-
-    <!-- ✅ Search ทั้งระบบ -->
-    <div class="searchbar">
-      <div class="searchrow">
-        <input id="q" class="searchinput" placeholder="ค้นหาเอกสารทั้งระบบ: โค้ด / ชื่อเอกสาร / แผนก" autocomplete="off" />
-        <select id="typeFilter" class="searchselect" title="กรองประเภท">
-          <option value="all">ทั้งหมด</option>
-          <option value="sop">SOP</option>
-          <option value="form">Form</option>
-        </select>
-        <button id="btnClear" class="searchbtn" type="button">ล้าง</button>
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+      <div class="hero-row">
+        <div>
+          <h1>เอกสารบริษัท<br/><span class="accent">ที่หาง่าย</span></h1>
+        </div>
+        <div class="hero-meta">
+          <div class="hero-byline">Internal — Humansoft</div>
+          <p class="hero-desc">ค้นหา SOP, แบบฟอร์ม, นโยบาย และคู่มือการทำงานของทุกแผนก ครบจบในที่เดียว — ข้อมูลอัปเดตจาก Google Sheet ตลอดเวลา</p>
+        </div>
       </div>
-      <div id="searchHint" class="searchhint">พิมพ์เพื่อค้นหา — ระบบจะแสดงผลทันที</div>
-    </div>
 
+      <!-- ===== Search ===== -->
+      <div class="searchbar">
+        <div class="searchrow">
+          <input id="q" class="searchinput" placeholder="ค้นหา: SOP-HR-01 / ใบลา / กระบวนการขาย / ชื่อแผนก..." autocomplete="off" />
+          <select id="typeFilter" class="searchselect" title="กรองประเภท">
+            <option value="all">ทั้งหมด</option>
+            <option value="sop">SOP</option>
+            <option value="form">Form</option>
+          </select>
+          <button id="btnClear" class="searchbtn" type="button">ล้าง</button>
+        </div>
+        <div id="searchHint" class="searchhint">พิมพ์เพื่อค้นหา — ระบบจะแสดงผลทันที (สูงสุด 50 รายการ)</div>
+      </div>
+    </section>
+
+    <!-- ===== Search Results ===== -->
     <div id="searchResults" class="results" style="display:none;"></div>
 
-    <h2 class="section-title">แผนก</h2>
-    <div id="deptGrid" class="grid"></div>
-  </main>
+    <!-- ===== Stats ===== -->
+    <section class="stats" id="stats"></section>
 
+    <!-- ===== Departments ===== -->
+    <div class="section-head">
+      <h2 class="section-title">Departments</h2>
+      <div class="section-info" id="deptInfo">— departments</div>
+    </div>
+    <div id="deptGrid" class="grid"></div>
+
+    <!-- ===== Footer ===== -->
+    <footer class="footer">
+      <div>© 2026 Humansoft Co., Ltd. — Internal Use Only</div>
+      <div>Document Control v2.0 · auto-synced</div>
+    </footer>
+
+  </div>
+
+  <!-- ===== COVER IMAGE MAPPING ===== -->
+  <script>
+    // Unsplash photo IDs mapped per department
+    window.DEPT_COVERS = {
+      "first-year": "1521737711867-e3b97375f902",
+      "old-customer": "1556761175-5973dc0f32e7",
+      "operator": "1486312338219-ce68d2c6f44d",
+      "product-management": "1581291518857-4e27b48ff24e",
+      "hr": "1521737604893-d14cc237f11d",
+      "it": "1518770660439-4636190af475",
+      "document-management": "1568667256549-094345857637",
+      "procurement": "1554224155-6726b3ff858f",
+      "qmr": "1454165804606-c3d57bc86b40",
+      "isms": "1563013544-824ae1b704d3",
+      "frequently-used": "1450101499163-c8848c66ca85",
+      "new-customer": "1556761175-b413da4baf72",
+      "risk-management": "1551836022-d5d88e9218df",
+      "policies": "1450101499163-c8848c66ca85",
+      "payroll outsource": "1554224155-6726b3ff858f",
+      // legacy Title-Case keys (fallback ของ data.js เก่า)
+      "Formที่ใช้บ่อย": "1450101499163-c8848c66ca85",
+      "New Customer": "1556761175-b413da4baf72",
+      "First Year": "1521737711867-e3b97375f902",
+      "Old Customer": "1556761175-5973dc0f32e7",
+      "Operator": "1486312338219-ce68d2c6f44d",
+      "Product": "1581291518857-4e27b48ff24e",
+      "HR": "1521737604893-d14cc237f11d",
+      "IT": "1518770660439-4636190af475",
+      "Document": "1568667256549-094345857637",
+      "Purchase": "1554224155-6726b3ff858f",
+      "QMR ": "1454165804606-c3d57bc86b40",
+      "ISMS": "1563013544-824ae1b704d3"
+    };
+    window.COVER_FALLBACK = "1450101499163-c8848c66ca85";
+
+    window.coverUrl = function(key) {
+      const id = window.DEPT_COVERS[key] || window.COVER_FALLBACK;
+      return `https://images.unsplash.com/photo-${id}?w=600&h=450&fit=crop&q=80&auto=format`;
+    };
+  </script>
+
+  <!-- ===== Main App Logic ===== -->
   <script>
     const grid = document.getElementById("deptGrid");
     const statsEl = document.getElementById("stats");
@@ -79,12 +141,13 @@
     const typeFilterEl = document.getElementById("typeFilter");
     const resultsEl = document.getElementById("searchResults");
     const btnClear = document.getElementById("btnClear");
+    const deptInfoEl = document.getElementById("deptInfo");
 
-    // ใช้ let แทน const — จะ reassign หลัง sheet-loader fetch สำเร็จ
     let DOCS = window.DOCUMENTS || (typeof DOCUMENTS !== "undefined" ? DOCUMENTS : null);
 
     function safeStr(v){ return (v ?? "").toString(); }
     function norm(s){ return safeStr(s).trim().toLowerCase(); }
+    function escapeHtml(s){ return safeStr(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
     function buildKeys() {
       let keys = Object.keys(DOCS || {});
@@ -96,12 +159,20 @@
       });
 
       keys.sort((a, b) => {
-        if (a === "Formที่ใช้บ่อย") return -1;
-        if (b === "Formที่ใช้บ่อย") return 1;
+        if (a === "Formที่ใช้บ่อย" || a === "frequently-used") return -1;
+        if (b === "Formที่ใช้บ่อย" || b === "frequently-used") return 1;
         return a.localeCompare(b, "th");
       });
 
       return keys;
+    }
+
+    function tagFor(d){
+      const sopN = (d.sop || []).length;
+      const formN = (d.form || []).length;
+      if (sopN === 0 && formN > 0) return 'Form-driven';
+      if (formN === 0 && sopN > 0) return 'SOP-driven';
+      return sopN >= formN ? 'SOP-driven' : 'Form-driven';
     }
 
     function renderDeptGrid(keys) {
@@ -109,19 +180,24 @@
         const d = DOCS[k] || {};
         const sopCount = (d.sop || []).length;
         const formCount = (d.form || []).length;
+        const name = escapeHtml(d.name || k);
+        const desc = escapeHtml(d.desc || "");
 
         return `
           <a class="card" href="department.html?dept=${encodeURIComponent(k)}">
-            <div class="card-head">
-              <div class="card-ic">${d.icon || "📁"}</div>
-              <div>
-                <div class="card-title">${d.name || k}</div>
-                <div class="card-desc">${d.desc || ""}</div>
-              </div>
+            <div class="card-cover">
+              <img src="${window.coverUrl(k)}" alt="${name}" loading="lazy" referrerpolicy="no-referrer" />
+              <div class="card-cover-tag">${tagFor(d)}</div>
             </div>
-            <div class="card-meta">
-              <span class="pill">SOP ${sopCount}</span>
-              <span class="pill">Form ${formCount}</span>
+            <div class="card-info">
+              <div class="card-eyebrow">Department · ${escapeHtml(k)}</div>
+              <div class="card-title">${name}</div>
+              <div class="card-desc">${desc}</div>
+              <div class="card-meta">
+                <span><strong>${sopCount}</strong> SOP</span>
+                <span><strong>${formCount}</strong> Forms</span>
+                <span class="card-arrow">→</span>
+              </div>
             </div>
           </a>
         `;
@@ -145,20 +221,20 @@
     function renderStats(s){
       statsEl.innerHTML = `
         <div class="stat">
-          <div class="stat-k">แผนกทั้งหมด</div>
           <div class="stat-v">${s.deptCount}</div>
+          <div class="stat-k">Departments</div>
         </div>
         <div class="stat">
-          <div class="stat-k">SOP ทั้งหมด</div>
           <div class="stat-v">${s.totalSop}</div>
+          <div class="stat-k">Standard Operating</div>
         </div>
         <div class="stat">
-          <div class="stat-k">Form ทั้งหมด</div>
           <div class="stat-v">${s.totalForm}</div>
+          <div class="stat-k">Forms</div>
         </div>
         <div class="stat">
-          <div class="stat-k">เอกสารรวม</div>
-          <div class="stat-v">${s.totalDocs}</div>
+          <div class="stat-v accent">${s.totalDocs}</div>
+          <div class="stat-k">Total Documents</div>
         </div>
       `;
     }
@@ -168,26 +244,15 @@
       keys.forEach(k => {
         const d = DOCS[k] || {};
         const deptName = d.name || k;
-        const deptIcon = d.icon || "📁";
         (d.sop || []).forEach(item => out.push({
-          type: "sop",
-          deptKey: k,
-          deptName,
-          deptIcon,
-          code: safeStr(item.code),
-          title: safeStr(item.title),
-          url: safeStr(item.url),
+          type: "sop", deptKey: k, deptName,
+          code: safeStr(item.code), title: safeStr(item.title), url: safeStr(item.url),
           version: safeStr(item.version || item.ver || ""),
           updated: safeStr(item.updated || item.last_updated || "")
         }));
         (d.form || []).forEach(item => out.push({
-          type: "form",
-          deptKey: k,
-          deptName,
-          deptIcon,
-          code: safeStr(item.code),
-          title: safeStr(item.title),
-          url: safeStr(item.url),
+          type: "form", deptKey: k, deptName,
+          code: safeStr(item.code), title: safeStr(item.title), url: safeStr(item.url),
           version: safeStr(item.version || item.ver || ""),
           updated: safeStr(item.updated || item.last_updated || "")
         }));
@@ -197,11 +262,14 @@
 
     function matches(item, q){
       if (!q) return true;
-      const hay = norm(
-        `${item.deptKey} ${item.deptName} ${item.type} ${item.code} ${item.title}`
-      );
+      const hay = norm(`${item.deptKey} ${item.deptName} ${item.type} ${item.code} ${item.title}`);
       return hay.includes(q);
     }
+
+    // SVG icons (no emoji)
+    const ICON_SOP = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+    const ICON_FORM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>`;
+    const ICON_VIEW = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
 
     function renderResults(list){
       if (!list.length){
@@ -210,37 +278,41 @@
         return;
       }
 
-      const limited = list.slice(0, 50); // กันยาวเกิน
+      const limited = list.slice(0, 50);
       resultsEl.style.display = "block";
       resultsEl.innerHTML = `
         <div class="results-head">
           <div class="results-title">ผลลัพธ์ (${list.length}${list.length>50 ? "+":""})</div>
-          <div class="results-sub">แสดงสูงสุด 50 รายการ</div>
+          <div class="results-sub">${limited.length} of ${list.length}</div>
         </div>
         <div class="results-list">
           ${limited.map(item => {
-            const label = item.type === "sop" ? "📘 SOP" : "🧾 Form";
-            const badgeVer = item.version ? `<span class="badge">v${item.version}</span>` : "";
-            const badgeUpd = item.updated ? `<span class="badge ghost">${item.updated}</span>` : "";
+            const icCls = item.type === "sop" ? "sop" : "form";
+            const ic = item.type === "sop" ? ICON_SOP : ICON_FORM;
+            const labelType = item.type === "sop" ? "SOP" : "FORM";
+            const badgeVer = item.version ? `<span class="badge">v${escapeHtml(item.version)}</span>` : "";
+            const badgeUpd = item.updated ? `<span class="badge ghost">${escapeHtml(item.updated)}</span>` : "";
             const right = item.url
-              ? `<a class="btn-download" href="${item.url}" target="_blank" rel="noopener">👁 ดูเอกสาร</a>`
+              ? `<a class="btn-download" href="${escapeHtml(item.url)}" target="_blank" rel="noopener">${ICON_VIEW} เปิดเอกสาร</a>`
               : `<span class="btn-disabled">ยังไม่พร้อม</span>`;
             const openDept = `docs.html?dept=${encodeURIComponent(item.deptKey)}&type=${encodeURIComponent(item.type)}`;
 
             return `
               <div class="doc-card">
                 <div class="doc-left">
-                  <div class="doc-ic">${item.deptIcon}</div>
-                  <div>
-                    <div class="doc-title">${label} · ${item.deptName}</div>
-                    <div class="doc-sub">
-                      <span class="mono">${item.code}</span>
-                      <span class="sep">—</span>
-                      <span>${item.title}</span>
+                  <div class="doc-ic ${icCls}">${ic}</div>
+                  <div style="flex:1; min-width:0;">
+                    <div class="doc-title">
+                      <span class="mono">${escapeHtml(item.code)}</span>
+                      <span>${escapeHtml(item.title)}</span>
                       ${badgeVer}
                       ${badgeUpd}
                     </div>
-                    <a class="link-muted" href="${openDept}">ดูเอกสารในแผนก</a>
+                    <div class="doc-sub">
+                      <span>${labelType} · ${escapeHtml(item.deptName)}</span>
+                      <span class="sep">·</span>
+                      <a class="link-muted" href="${openDept}">ดูในแผนก</a>
+                    </div>
                   </div>
                 </div>
                 ${right}
@@ -252,6 +324,7 @@
     }
 
     function runSearch(){
+      if (!DOCS) return;
       const keys = buildKeys();
       const allDocs = buildAllDocs(keys);
 
@@ -264,7 +337,6 @@
       });
 
       const hasQuery = q.length > 0 || typeFilter !== "all";
-
       if (!hasQuery){
         resultsEl.style.display = "none";
         resultsEl.innerHTML = "";
@@ -273,20 +345,22 @@
       renderResults(filtered);
     }
 
-    // ====== Render orchestration (callable หลายครั้ง — re-render หลัง Sheet load) ======
+    // ====== Render orchestration (callable หลายครั้ง) ======
     function renderAll() {
       if (!DOCS) {
         statsEl.innerHTML = `<div class="empty">โหลดข้อมูลไม่สำเร็จ: ไม่พบ DOCUMENTS</div>`;
         grid.innerHTML = `<div class="empty">ยังไม่มีข้อมูลเอกสาร</div>`;
+        deptInfoEl.textContent = '— departments';
         return;
       }
       const keys = buildKeys();
       renderStats(computeStats(keys));
       renderDeptGrid(keys);
-      runSearch(); // refresh search results ถ้า user พิมพ์ค้นไว้แล้ว
+      runSearch();
+      deptInfoEl.textContent = `${keys.length} departments`;
     }
 
-    // ====== Setup listeners ครั้งเดียว ======
+    // Setup listeners ครั้งเดียว
     qEl.addEventListener("input", runSearch);
     typeFilterEl.addEventListener("change", runSearch);
     btnClear.addEventListener("click", () => {
@@ -296,10 +370,10 @@
       qEl.focus();
     });
 
-    // First render (ใช้ local data.js)
+    // First render
     renderAll();
 
-    // ====== Async fetch จาก Google Sheet → re-render เมื่อสำเร็จ ======
+    // Async fetch จาก Google Sheet → re-render เมื่อสำเร็จ
     if (window.HMSDocLoader && typeof window.HMSDocLoader.load === "function") {
       window.HMSDocLoader.load()
         .then(liveDocs => {
@@ -308,8 +382,7 @@
           window.__DATA_SOURCE__ = "live";
           window.__DATA_LOADED_AT__ = new Date().toISOString();
           renderAll();
-          // อัปเดต freshness indicator
-          if (typeof window.__updateDataStatus__ === "function") window.__updateDataStatus__();
+          if (typeof window.__updateLiveBadge__ === "function") window.__updateLiveBadge__();
           console.log("[HMSDoc] ✅ Live data loaded from Google Sheet");
         })
         .catch(err => {
@@ -318,53 +391,42 @@
     }
   </script>
 
-<script>
-(function(){
-  const el = document.getElementById("breadcrumbContainer");
-  if(!el) return;
-  el.innerHTML = '<span class="bc-item is-current" aria-current="page">Home</span>';
-})();
-</script>
+  <!-- ===== Breadcrumb ===== -->
+  <script>
+  (function(){
+    const el = document.getElementById("breadcrumbContainer");
+    if(!el) return;
+    el.innerHTML = '<span class="bc-item is-current" aria-current="page">Home</span>';
+  })();
+  </script>
 
-<!-- 🟢 Data Freshness Indicator Logic -->
-<script>
-(function(){
-  var dot = document.getElementById("dataStatusDot");
-  var txt = document.getElementById("dataStatusText");
-  var btn = document.getElementById("btnHardRefresh");
-  if (!dot || !txt) return;
+  <!-- ===== Live Badge ===== -->
+  <script>
+  (function(){
+    const badge = document.getElementById("liveBadge");
+    const txt = document.getElementById("liveBadgeText");
+    if (!badge || !txt) return;
 
-  function fmtTime(d){
-    return String(d.getHours()).padStart(2,"0") + ":" +
-           String(d.getMinutes()).padStart(2,"0") + ":" +
-           String(d.getSeconds()).padStart(2,"0");
-  }
-
-  // Expose globally — เรียกซ้ำได้หลัง Sheet load สำเร็จ
-  window.__updateDataStatus__ = function(){
-    var src = window.__DATA_SOURCE__ || "local";
-    var at  = window.__DATA_LOADED_AT__ ? new Date(window.__DATA_LOADED_AT__) : new Date();
-    var time = fmtTime(at);
-    if (src === "live") {
-      dot.style.background = "#22c55e";
-      txt.innerHTML = '🟢 <strong>Live</strong> — ข้อมูลล่าสุดจาก Google Sheet (อัปเดต ' + time + ')';
-    } else {
-      dot.style.background = "#f59e0b";
-      txt.innerHTML = '🟡 <strong>กำลังโหลดจาก Google Sheet...</strong> ใช้ local cache ชั่วคราว (โหลด ' + time + ')';
+    function fmtTime(d){
+      return String(d.getHours()).padStart(2,"0") + ":" +
+             String(d.getMinutes()).padStart(2,"0");
     }
-  };
 
-  // Initial state
-  window.__updateDataStatus__();
-
-  if (btn) {
-    btn.addEventListener("click", function(){
-      // Hard refresh — bypass HTTP cache
-      location.reload(true);
-    });
-  }
-})();
-</script>
+    window.__updateLiveBadge__ = function(){
+      const src = window.__DATA_SOURCE__ || "local";
+      const at  = window.__DATA_LOADED_AT__ ? new Date(window.__DATA_LOADED_AT__) : new Date();
+      const time = fmtTime(at);
+      if (src === "live") {
+        badge.classList.remove("local");
+        txt.textContent = `Live · synced ${time}`;
+      } else {
+        badge.classList.add("local");
+        txt.textContent = `Local cache · ${time}`;
+      }
+    };
+    window.__updateLiveBadge__();
+  })();
+  </script>
 
 </body>
 </html>

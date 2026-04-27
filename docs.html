@@ -3,12 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Documents</title>
+  <title>Documents · HMS Document Portal</title>
   <link rel="stylesheet" href="style.css" />
-
-  <!-- ============================================================ -->
-  <!-- 🔄 HYBRID DATA LOADING — Pure Static (No Apps Script)         -->
-  <!-- ============================================================ -->
   <script src="data.js?v=20260427"></script>
   <script src="sheet-loader.js?v=20260427"></script>
   <script>
@@ -17,41 +13,57 @@
   </script>
 </head>
 <body>
-  <header class="topbar">
-    <a class="back" href="javascript:history.back()">← กลับ</a>
+  <div class="container">
 
-    <div class="brand small">
-      <div class="brand-logo" id="deptIcon">📁</div>
-      <div>
-        <div class="brand-title" id="pageTitle">Documents</div>
-        <div class="brand-sub" id="pageSub"></div>
+    <!-- ===== TOP BAR ===== -->
+    <header class="topbar">
+      <a class="brand" href="index.html">
+        <img class="brand-img" src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg" alt="Humansoft" loading="lazy" referrerpolicy="no-referrer" />
+        <div class="brand-divider"></div>
+        <div class="brand-text">
+          <div class="brand-title">Document Portal</div>
+          <div class="brand-sub">Internal Knowledge Base</div>
+        </div>
+      </a>
+      <div class="topbar-right">
+        <a class="btn-back" href="javascript:history.back()">← กลับ</a>
+        <a class="btn-contract" target="_blank" rel="noopener"
+           href="https://script.google.com/macros/s/AKfycbzgnGFsiTBcq9FoY0wa6mUWNJU2sAIti01YIjioEtryLD1NN9-EPfGOq-lP0rjK-FeP/exec">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          ออกสัญญาอัตโนมัติ
+        </a>
       </div>
-    </div>
+    </header>
 
-    <a class="btn-contract" target="_blank"
-       href="https://script.google.com/macros/s/AKfycbyyQfedHKT8nYrEz9wgghMWUBE8XlbXi8UFg5OtmXmQ_pepdoXEgoOCa4VqMFRtGZeR/exec">
-      📄 ออกสัญญาอัตโนมัติ
-    </a>
-</header>
-  <!-- ===== Breadcrumb Start ===== -->
-  <nav class="breadcrumb" aria-label="Breadcrumb">
-    <div id="breadcrumbContainer"></div>
-  </nav>
-  <!-- ===== Breadcrumb End ===== -->
+    <!-- ===== Breadcrumb ===== -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <div id="breadcrumbContainer"></div>
+    </nav>
 
+    <!-- ===== Page Header ===== -->
+    <section style="padding: 48px 0 16px;">
+      <div class="hero-byline" id="pageEyebrow">Documents</div>
+      <h1 id="pageTitle" style="font-size:48px; line-height:1.1; letter-spacing:-0.03em; font-weight:600; margin-bottom:10px;">Loading…</h1>
+      <p id="pageSub" style="font-size:15px; color:var(--ink-soft);"></p>
+    </section>
 
-  <main class="container">
-    <!-- ✅ Search ภายในแผนก -->
+    <!-- ===== Search ===== -->
     <div class="searchbar compact">
       <div class="searchrow">
-        <input id="q" class="searchinput" placeholder="ค้นหาในหน้านี้: โค้ด / ชื่อเอกสาร" autocomplete="off" />
+        <input id="q" class="searchinput" placeholder="ค้นหาในหน้านี้: โค้ด หรือ ชื่อเอกสาร" autocomplete="off" />
         <button id="btnClear" class="searchbtn" type="button">ล้าง</button>
       </div>
-      <div id="searchHint" class="searchhint">ค้นหาได้ทั้ง SOP / Form ตามหน้าที่เลือก</div>
+      <div id="searchHint" class="searchhint">ค้นหาเฉพาะ <span id="hintType">เอกสาร</span> ในแผนกนี้</div>
     </div>
 
-    <div id="docList" class="doc-list"></div>
-  </main>
+    <!-- ===== Doc List ===== -->
+    <div id="docList" class="doc-list" style="margin-top: 24px;"></div>
+
+    <footer class="footer">
+      <div>© 2026 Humansoft Co., Ltd. — Internal Use Only</div>
+      <div>Document Control v2.0</div>
+    </footer>
+  </div>
 
   <script>
     const params = new URLSearchParams(location.search);
@@ -63,31 +75,38 @@
     const listEl = document.getElementById("docList");
     const qEl = document.getElementById("q");
     const btnClear = document.getElementById("btnClear");
+    const hintTypeEl = document.getElementById("hintType");
 
     function safeStr(v){ return (v ?? "").toString(); }
     function norm(s){ return safeStr(s).trim().toLowerCase(); }
+    function escapeHtml(s){ return safeStr(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    const ICON_SOP = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+    const ICON_FORM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>`;
+    const ICON_VIEW = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
 
     function buildDoc(item){
       const url = norm(item.url);
       const ver = safeStr(item.version || item.ver || "");
       const upd = safeStr(item.updated || item.last_updated || "");
+      const icCls = type === "sop" ? "sop" : "form";
+      const ic = type === "sop" ? ICON_SOP : ICON_FORM;
 
       const right = url
-        ? `<a class="btn-download" href="${item.url}" target="_blank" rel="noopener">👁 ดูเอกสาร</a>`
+        ? `<a class="btn-download" href="${escapeHtml(item.url)}" target="_blank" rel="noopener">${ICON_VIEW} เปิดเอกสาร</a>`
         : `<span class="btn-disabled">ยังไม่พร้อม</span>`;
 
-      const badgeVer = ver ? `<span class="badge">v${ver}</span>` : "";
-      const badgeUpd = upd ? `<span class="badge ghost">${upd}</span>` : "";
+      const badgeVer = ver ? `<span class="badge">v${escapeHtml(ver)}</span>` : "";
+      const badgeUpd = upd ? `<span class="badge ghost">${escapeHtml(upd)}</span>` : "";
 
       return `
         <div class="doc-card">
           <div class="doc-left">
-            <div class="doc-ic">${type === "sop" ? "📘" : "🧾"}</div>
-            <div>
+            <div class="doc-ic ${icCls}">${ic}</div>
+            <div style="flex:1; min-width:0;">
               <div class="doc-title">
-                <span class="mono">${safeStr(item.code)}</span>
-                <span class="sep"> </span>
-                <span>${safeStr(item.title)}</span>
+                <span class="mono">${escapeHtml(item.code)}</span>
+                <span>${escapeHtml(item.title)}</span>
                 ${badgeVer}
                 ${badgeUpd}
               </div>
@@ -100,7 +119,7 @@
 
     function render(list) {
       if (!list || list.length === 0) {
-        listEl.innerHTML = '<div class="empty">ไม่มีรายการ</div>';
+        listEl.innerHTML = '<div class="empty">ไม่มีรายการในหน้านี้</div>';
         return;
       }
       listEl.innerHTML = list.map(buildDoc).join("");
@@ -108,10 +127,7 @@
 
     function applySearch(master){
       const q = norm(qEl.value);
-      if (!q){
-        render(master);
-        return;
-      }
+      if (!q){ render(master); return; }
       const filtered = master.filter(item => {
         const hay = norm(`${item.code} ${item.title} ${(item.version||item.ver||"")} ${(item.updated||item.last_updated||"")}`);
         return hay.includes(q);
@@ -119,7 +135,6 @@
       render(filtered);
     }
 
-    // ===== Setup listeners ครั้งเดียว — bind ผ่าน closure ที่อ่าน master ใหม่เสมอ =====
     let currentMaster = [];
     qEl.addEventListener("input", () => applySearch(currentMaster));
     btnClear.addEventListener("click", () => {
@@ -128,7 +143,6 @@
       qEl.focus();
     });
 
-    // ===== Render orchestration (callable หลายครั้ง) =====
     function renderAll(){
       const d = DOCS ? DOCS[deptKey] : null;
 
@@ -140,70 +154,62 @@
       }
       if (!d) {
         document.getElementById("pageTitle").textContent = "ไม่พบแผนก";
-        listEl.innerHTML = `<div class="empty">ไม่พบข้อมูลของแผนก: ${deptKey || "-"}</div>`;
+        listEl.innerHTML = `<div class="empty">ไม่พบข้อมูลของแผนก: ${escapeHtml(deptKey || "-")}</div>`;
         currentMaster = [];
         return;
       }
 
-      const label = (type === "sop") ? "SOP" : "Form";
-      document.title = `${label} - ${d.name || deptKey}`;
-      document.getElementById("deptIcon").textContent = d.icon || "📁";
-      document.getElementById("pageTitle").textContent = `${label} : ${d.name || deptKey}`;
+      const label = (type === "sop") ? "Standard Operating Procedures" : "Forms & Templates";
+      const labelShort = (type === "sop") ? "SOP" : "Forms";
+      document.title = `${labelShort} · ${d.name || deptKey}`;
+      document.getElementById("pageEyebrow").textContent = `${labelShort} · ${d.name || deptKey}`;
+      document.getElementById("pageTitle").textContent = label;
       document.getElementById("pageSub").textContent = d.desc || "";
+      hintTypeEl.textContent = labelShort;
 
       currentMaster = (type === "sop") ? (d.sop || []) : (d.form || []);
-      applySearch(currentMaster); // respect ค่าใน search box ถ้า user พิมพ์ไว้
+      applySearch(currentMaster);
     }
 
-    // First render (local data.js)
     renderAll();
 
-    // Async fetch จาก Google Sheet → re-render เมื่อสำเร็จ
     if (window.HMSDocLoader && typeof window.HMSDocLoader.load === "function") {
       window.HMSDocLoader.load()
         .then(liveDocs => {
           DOCS = liveDocs;
           window.DOCUMENTS = liveDocs;
           window.__DATA_SOURCE__ = "live";
-          window.__DATA_LOADED_AT__ = new Date().toISOString();
           renderAll();
-          console.log("[HMSDoc] ✅ Live data loaded from Google Sheet");
+          console.log("[HMSDoc] ✅ Live data loaded");
         })
         .catch(err => console.warn("[HMSDoc] ⚠️ Sheet fetch failed → ใช้ local data.js ต่อ", err));
     }
   </script>
 
-<script>
-(function(){
-  const el = document.getElementById("breadcrumbContainer");
-  if(!el) return;
+  <!-- ===== Breadcrumb ===== -->
+  <script>
+  (function(){
+    const el = document.getElementById("breadcrumbContainer");
+    if(!el) return;
 
-  const params = new URLSearchParams(location.search);
-  const dept = params.get("dept") || "";
-  const type = params.get("type") || ""; // sop | form
+    const params = new URLSearchParams(location.search);
+    const dept = params.get("dept") || "";
+    const type = params.get("type") || "";
 
-  const parts = [];
-  const sep = () => '<span class="bc-sep" aria-hidden="true">›</span>';
-  const link = (t,h) => `<a class="bc-item" href="${h}">${t}</a>`;
-  const cur  = (t) => `<span class="bc-item is-current" aria-current="page">${t}</span>`;
+    const sep = () => '<span class="bc-sep" aria-hidden="true">›</span>';
+    const link = (t,h) => `<a class="bc-item" href="${h}">${t}</a>`;
+    const cur  = (t) => `<span class="bc-item is-current" aria-current="page">${t}</span>`;
 
-  parts.push(link("Home","index.html"));
-  parts.push(sep());
-  parts.push(link("Departments","department.html"));
-
-  if(dept){
-    parts.push(sep());
-    parts.push(link(dept, `department.html?dept=${encodeURIComponent(dept)}`));
-  }
-
-  // Current page label
-  const label = type === "sop" ? "SOP" : (type === "form" ? "Form" : "Docs");
-  parts.push(sep());
-  parts.push(cur(label));
-
-  el.innerHTML = parts.join("");
-})();
-</script>
+    const parts = [link("Home","index.html"), sep()];
+    if(dept){
+      parts.push(link(dept, `department.html?dept=${encodeURIComponent(dept)}`));
+      parts.push(sep());
+    }
+    const label = type === "sop" ? "SOP" : (type === "form" ? "Forms" : "Documents");
+    parts.push(cur(label));
+    el.innerHTML = parts.join("");
+  })();
+  </script>
 
 </body>
 </html>
