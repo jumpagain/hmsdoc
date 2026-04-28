@@ -5,12 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>HMS Document Portal</title>
   <link rel="stylesheet" href="style.css" />
-
-  <!-- ============================================================ -->
-  <!-- 🔄 HYBRID DATA LOADING — Pure Static (No Apps Script)         -->
-  <!-- ============================================================ -->
-  <script src="data.js?v=20260427"></script>
-  <script src="sheet-loader.js?v=20260427"></script>
+  <script src="data.js?v=20260428"></script>
+  <script src="sheet-loader.js?v=20260428"></script>
   <script>
     window.__DATA_SOURCE__ = "local";
     window.__DATA_LOADED_AT__ = new Date().toISOString();
@@ -20,7 +16,7 @@
   <div class="container">
 
     <!-- ===== TOP BAR ===== -->
-    <header class="topbar">
+    <header class="topbar" id="topbar">
       <a class="brand" href="index.html">
         <img class="brand-img" src="https://www.humansoft.co.th/assets/images/logos/logo-text.svg" alt="Humansoft" loading="lazy" referrerpolicy="no-referrer" />
         <div class="brand-divider"></div>
@@ -30,6 +26,11 @@
         </div>
       </a>
       <div class="topbar-right">
+        <button class="cmdk-trigger" id="cmdkTrigger" type="button">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          ค้นหาทั้งระบบ
+          <span class="cmdk-kbd">⌘K</span>
+        </button>
         <div id="liveBadge" class="live-badge local"><span id="liveBadgeText">Loading…</span></div>
         <a class="btn-contract" target="_blank" rel="noopener"
            href="https://script.google.com/macros/s/AKfycbzgnGFsiTBcq9FoY0wa6mUWNJU2sAIti01YIjioEtryLD1NN9-EPfGOq-lP0rjK-FeP/exec">
@@ -39,7 +40,6 @@
       </div>
     </header>
 
-    <!-- ===== Breadcrumb ===== -->
     <nav class="breadcrumb" aria-label="Breadcrumb">
       <div id="breadcrumbContainer"></div>
     </nav>
@@ -52,27 +52,19 @@
         </div>
         <div class="hero-meta">
           <div class="hero-byline">Internal — Humansoft</div>
-          <p class="hero-desc">ค้นหา SOP, แบบฟอร์ม, นโยบาย และคู่มือการทำงานของทุกแผนก ครบจบในที่เดียว — ข้อมูลอัปเดตจาก Google Sheet ตลอดเวลา</p>
+          <p class="hero-desc">ค้นหา SOP, แบบฟอร์ม, นโยบาย และคู่มือการทำงานของทุกแผนก ครบจบในที่เดียว — กด <span class="cmdk-kbd">⌘K</span> เพื่อค้นหาเร็ว</p>
         </div>
       </div>
 
-      <!-- ===== Search ===== -->
-      <div class="searchbar">
-        <div class="searchrow">
-          <input id="q" class="searchinput" placeholder="ค้นหา: SOP-HR-01 / ใบลา / กระบวนการขาย / ชื่อแผนก..." autocomplete="off" />
-          <select id="typeFilter" class="searchselect" title="กรองประเภท">
-            <option value="all">ทั้งหมด</option>
-            <option value="sop">SOP</option>
-            <option value="form">Form</option>
-          </select>
-          <button id="btnClear" class="searchbtn" type="button">ล้าง</button>
+      <!-- Recently viewed (เห็นเฉพาะเมื่อมีประวัติ) -->
+      <div class="recents" id="recents" style="display:none;">
+        <div class="recents-head">
+          <div class="recents-title">เปิดล่าสุด</div>
+          <button class="recents-clear" id="recentsClear" type="button">ล้างประวัติ</button>
         </div>
-        <div id="searchHint" class="searchhint">พิมพ์เพื่อค้นหา — ระบบจะแสดงผลทันที (สูงสุด 50 รายการ)</div>
+        <div class="recents-list" id="recentsList"></div>
       </div>
     </section>
-
-    <!-- ===== Search Results ===== -->
-    <div id="searchResults" class="results" style="display:none;"></div>
 
     <!-- ===== Stats ===== -->
     <section class="stats" id="stats"></section>
@@ -84,7 +76,6 @@
     </div>
     <div id="deptGrid" class="grid"></div>
 
-    <!-- ===== Footer ===== -->
     <footer class="footer">
       <div>© 2026 Humansoft Co., Ltd. — Internal Use Only</div>
       <div>Document Control v2.0 · auto-synced</div>
@@ -92,9 +83,28 @@
 
   </div>
 
-  <!-- ===== COVER IMAGE MAPPING ===== -->
+  <!-- ===== Toast ===== -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ===== Cmd+K Modal ===== -->
+  <div class="cmdk-overlay" id="cmdkOverlay" role="dialog" aria-modal="true">
+    <div class="cmdk-modal">
+      <div class="cmdk-input-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input class="cmdk-input" id="cmdkInput" placeholder="ค้นหาเอกสาร / แผนก..." autocomplete="off" />
+        <span class="cmdk-kbd">Esc</span>
+      </div>
+      <div class="cmdk-list" id="cmdkList"></div>
+      <div class="cmdk-footer">
+        <span class="kbdgroup"><span class="cmdk-kbd">↑↓</span> เลือก</span>
+        <span class="kbdgroup"><span class="cmdk-kbd">↵</span> เปิด</span>
+        <span class="kbdgroup"><span class="cmdk-kbd">Esc</span> ปิด</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== COVER IMAGES ===== -->
   <script>
-    // Unsplash photo IDs mapped per department
     window.DEPT_COVERS = {
       "first-year": "1521737711867-e3b97375f902",
       "old-customer": "1556761175-5973dc0f32e7",
@@ -111,7 +121,6 @@
       "risk-management": "1551836022-d5d88e9218df",
       "policies": "1450101499163-c8848c66ca85",
       "payroll outsource": "1554224155-6726b3ff858f",
-      // legacy Title-Case keys (fallback ของ data.js เก่า)
       "Formที่ใช้บ่อย": "1450101499163-c8848c66ca85",
       "New Customer": "1556761175-b413da4baf72",
       "First Year": "1521737711867-e3b97375f902",
@@ -125,45 +134,85 @@
       "QMR ": "1454165804606-c3d57bc86b40",
       "ISMS": "1563013544-824ae1b704d3"
     };
-    window.COVER_FALLBACK = "1450101499163-c8848c66ca85";
-
     window.coverUrl = function(key) {
-      const id = window.DEPT_COVERS[key] || window.COVER_FALLBACK;
+      const id = window.DEPT_COVERS[key] || "1450101499163-c8848c66ca85";
       return `https://images.unsplash.com/photo-${id}?w=600&h=450&fit=crop&q=80&auto=format`;
     };
   </script>
 
-  <!-- ===== Main App Logic ===== -->
   <script>
+    // ============================================================
+    // ICONS
+    // ============================================================
+    const ICON_SOP = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+    const ICON_FORM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>`;
+    const ICON_DEPT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+    const ICON_CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+    // ============================================================
+    // STATE
+    // ============================================================
     const grid = document.getElementById("deptGrid");
     const statsEl = document.getElementById("stats");
-    const qEl = document.getElementById("q");
-    const typeFilterEl = document.getElementById("typeFilter");
-    const resultsEl = document.getElementById("searchResults");
-    const btnClear = document.getElementById("btnClear");
     const deptInfoEl = document.getElementById("deptInfo");
+    const recentsEl = document.getElementById("recents");
+    const recentsListEl = document.getElementById("recentsList");
+    const toastEl = document.getElementById("toast");
 
     let DOCS = window.DOCUMENTS || (typeof DOCUMENTS !== "undefined" ? DOCUMENTS : null);
 
     function safeStr(v){ return (v ?? "").toString(); }
-    function norm(s){ return safeStr(s).trim().toLowerCase(); }
     function escapeHtml(s){ return safeStr(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+    // ============================================================
+    // RECENTLY VIEWED
+    // ============================================================
+    const RECENT_KEY = "hmsdoc_recents_v1";
+    function getRecents(){
+      try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); }
+      catch(e) { return []; }
+    }
+    function clearRecents(){ localStorage.removeItem(RECENT_KEY); renderRecents(); }
+    function renderRecents(){
+      const items = getRecents().slice(0, 6);
+      if (!items.length){ recentsEl.style.display = "none"; return; }
+      recentsEl.style.display = "block";
+      recentsListEl.innerHTML = items.map(r => {
+        const ic = r.type === "sop" ? ICON_SOP : ICON_FORM;
+        const cls = r.type === "sop" ? "sop" : "form";
+        return `<a class="recent-chip" href="${escapeHtml(r.url)}" target="_blank" rel="noopener" title="${escapeHtml(r.title)}">
+          <span style="display:inline-flex;width:14px;height:14px;">${ic.replace('<svg', '<svg class="recent-chip-ic '+cls+'"')}</span>
+          <span class="recent-chip-text"><span class="mono" style="margin-right:6px;">${escapeHtml(r.code)}</span>${escapeHtml(r.title)}</span>
+        </a>`;
+      }).join("");
+    }
+    document.getElementById("recentsClear").addEventListener("click", clearRecents);
+
+    // ============================================================
+    // TOAST
+    // ============================================================
+    let toastTimer;
+    function showToast(text){
+      clearTimeout(toastTimer);
+      toastEl.innerHTML = ICON_CHECK + ' ' + escapeHtml(text);
+      toastEl.classList.add("show");
+      toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2000);
+    }
+
+    // ============================================================
+    // RENDER
+    // ============================================================
     function buildKeys() {
       let keys = Object.keys(DOCS || {});
       keys = keys.filter(k => {
         const d = DOCS[k] || {};
-        const sopCount = (d.sop || []).length;
-        const formCount = (d.form || []).length;
-        return (sopCount + formCount) > 0;
+        return ((d.sop || []).length + (d.form || []).length) > 0;
       });
-
       keys.sort((a, b) => {
         if (a === "Formที่ใช้บ่อย" || a === "frequently-used") return -1;
         if (b === "Formที่ใช้บ่อย" || b === "frequently-used") return 1;
         return a.localeCompare(b, "th");
       });
-
       return keys;
     }
 
@@ -175,7 +224,19 @@
       return sopN >= formN ? 'SOP-driven' : 'Form-driven';
     }
 
+    function renderSkeleton(){
+      grid.innerHTML = Array.from({length: 8}, () => `
+        <div class="skeleton-card">
+          <div class="skeleton skeleton-cover"></div>
+          <div class="skeleton skeleton-line short"></div>
+          <div class="skeleton skeleton-line medium"></div>
+          <div class="skeleton skeleton-line long"></div>
+        </div>
+      `).join("");
+    }
+
     function renderDeptGrid(keys) {
+      // Card คลิก → docs.html?dept=X (default tab=all)
       grid.innerHTML = keys.map(k => {
         const d = DOCS[k] || {};
         const sopCount = (d.sop || []).length;
@@ -184,7 +245,7 @@
         const desc = escapeHtml(d.desc || "");
 
         return `
-          <a class="card" href="department.html?dept=${encodeURIComponent(k)}">
+          <a class="card" href="docs.html?dept=${encodeURIComponent(k)}">
             <div class="card-cover">
               <img src="${window.coverUrl(k)}" alt="${name}" loading="lazy" referrerpolicy="no-referrer" />
               <div class="card-cover-tag">${tagFor(d)}</div>
@@ -239,141 +300,31 @@
       `;
     }
 
-    function buildAllDocs(keys){
-      const out = [];
-      keys.forEach(k => {
-        const d = DOCS[k] || {};
-        const deptName = d.name || k;
-        (d.sop || []).forEach(item => out.push({
-          type: "sop", deptKey: k, deptName,
-          code: safeStr(item.code), title: safeStr(item.title), url: safeStr(item.url),
-          version: safeStr(item.version || item.ver || ""),
-          updated: safeStr(item.updated || item.last_updated || "")
-        }));
-        (d.form || []).forEach(item => out.push({
-          type: "form", deptKey: k, deptName,
-          code: safeStr(item.code), title: safeStr(item.title), url: safeStr(item.url),
-          version: safeStr(item.version || item.ver || ""),
-          updated: safeStr(item.updated || item.last_updated || "")
-        }));
-      });
-      return out;
-    }
-
-    function matches(item, q){
-      if (!q) return true;
-      const hay = norm(`${item.deptKey} ${item.deptName} ${item.type} ${item.code} ${item.title}`);
-      return hay.includes(q);
-    }
-
-    // SVG icons (no emoji)
-    const ICON_SOP = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
-    const ICON_FORM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>`;
-    const ICON_VIEW = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
-
-    function renderResults(list){
-      if (!list.length){
-        resultsEl.style.display = "block";
-        resultsEl.innerHTML = `<div class="empty">ไม่พบผลลัพธ์</div>`;
-        return;
-      }
-
-      const limited = list.slice(0, 50);
-      resultsEl.style.display = "block";
-      resultsEl.innerHTML = `
-        <div class="results-head">
-          <div class="results-title">ผลลัพธ์ (${list.length}${list.length>50 ? "+":""})</div>
-          <div class="results-sub">${limited.length} of ${list.length}</div>
-        </div>
-        <div class="results-list">
-          ${limited.map(item => {
-            const icCls = item.type === "sop" ? "sop" : "form";
-            const ic = item.type === "sop" ? ICON_SOP : ICON_FORM;
-            const labelType = item.type === "sop" ? "SOP" : "FORM";
-            const badgeVer = item.version ? `<span class="badge">v${escapeHtml(item.version)}</span>` : "";
-            const badgeUpd = item.updated ? `<span class="badge ghost">${escapeHtml(item.updated)}</span>` : "";
-            const right = item.url
-              ? `<a class="btn-download" href="${escapeHtml(item.url)}" target="_blank" rel="noopener">${ICON_VIEW} เปิดเอกสาร</a>`
-              : `<span class="btn-disabled">ยังไม่พร้อม</span>`;
-            const openDept = `docs.html?dept=${encodeURIComponent(item.deptKey)}&type=${encodeURIComponent(item.type)}`;
-
-            return `
-              <div class="doc-card">
-                <div class="doc-left">
-                  <div class="doc-ic ${icCls}">${ic}</div>
-                  <div style="flex:1; min-width:0;">
-                    <div class="doc-title">
-                      <span class="mono">${escapeHtml(item.code)}</span>
-                      <span>${escapeHtml(item.title)}</span>
-                      ${badgeVer}
-                      ${badgeUpd}
-                    </div>
-                    <div class="doc-sub">
-                      <span>${labelType} · ${escapeHtml(item.deptName)}</span>
-                      <span class="sep">·</span>
-                      <a class="link-muted" href="${openDept}">ดูในแผนก</a>
-                    </div>
-                  </div>
-                </div>
-                ${right}
-              </div>
-            `;
-          }).join("")}
-        </div>
-      `;
-    }
-
-    function runSearch(){
-      if (!DOCS) return;
-      const keys = buildKeys();
-      const allDocs = buildAllDocs(keys);
-
-      const q = norm(qEl.value);
-      const typeFilter = typeFilterEl.value;
-
-      const filtered = allDocs.filter(item => {
-        const typeOk = (typeFilter === "all") || (item.type === typeFilter);
-        return typeOk && matches(item, q);
-      });
-
-      const hasQuery = q.length > 0 || typeFilter !== "all";
-      if (!hasQuery){
-        resultsEl.style.display = "none";
-        resultsEl.innerHTML = "";
-        return;
-      }
-      renderResults(filtered);
-    }
-
-    // ====== Render orchestration (callable หลายครั้ง) ======
     function renderAll() {
       if (!DOCS) {
-        statsEl.innerHTML = `<div class="empty">โหลดข้อมูลไม่สำเร็จ: ไม่พบ DOCUMENTS</div>`;
-        grid.innerHTML = `<div class="empty">ยังไม่มีข้อมูลเอกสาร</div>`;
+        statsEl.innerHTML = `<div class="empty">โหลดข้อมูลไม่สำเร็จ</div>`;
+        grid.innerHTML = `<div class="empty">ยังไม่มีข้อมูล</div>`;
         deptInfoEl.textContent = '— departments';
         return;
       }
       const keys = buildKeys();
       renderStats(computeStats(keys));
       renderDeptGrid(keys);
-      runSearch();
       deptInfoEl.textContent = `${keys.length} departments`;
     }
 
-    // Setup listeners ครั้งเดียว
-    qEl.addEventListener("input", runSearch);
-    typeFilterEl.addEventListener("change", runSearch);
-    btnClear.addEventListener("click", () => {
-      qEl.value = "";
-      typeFilterEl.value = "all";
-      runSearch();
-      qEl.focus();
-    });
+    // ============================================================
+    // BOOT
+    // ============================================================
+    renderRecents();
 
-    // First render
-    renderAll();
+    if (DOCS) {
+      renderAll();
+    } else {
+      renderSkeleton();
+    }
 
-    // Async fetch จาก Google Sheet → re-render เมื่อสำเร็จ
+    // Async fetch จาก Sheet
     if (window.HMSDocLoader && typeof window.HMSDocLoader.load === "function") {
       window.HMSDocLoader.load()
         .then(liveDocs => {
@@ -383,11 +334,8 @@
           window.__DATA_LOADED_AT__ = new Date().toISOString();
           renderAll();
           if (typeof window.__updateLiveBadge__ === "function") window.__updateLiveBadge__();
-          console.log("[HMSDoc] ✅ Live data loaded from Google Sheet");
         })
-        .catch(err => {
-          console.warn("[HMSDoc] ⚠️ Sheet fetch failed → ใช้ local data.js ต่อ", err);
-        });
+        .catch(err => console.warn("[HMSDoc] ⚠️ Sheet fetch failed", err));
     }
   </script>
 
@@ -406,25 +354,167 @@
     const badge = document.getElementById("liveBadge");
     const txt = document.getElementById("liveBadgeText");
     if (!badge || !txt) return;
-
-    function fmtTime(d){
-      return String(d.getHours()).padStart(2,"0") + ":" +
-             String(d.getMinutes()).padStart(2,"0");
-    }
-
+    function fmt(d){ return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0"); }
     window.__updateLiveBadge__ = function(){
       const src = window.__DATA_SOURCE__ || "local";
       const at  = window.__DATA_LOADED_AT__ ? new Date(window.__DATA_LOADED_AT__) : new Date();
-      const time = fmtTime(at);
-      if (src === "live") {
-        badge.classList.remove("local");
-        txt.textContent = `Live · synced ${time}`;
-      } else {
-        badge.classList.add("local");
-        txt.textContent = `Local cache · ${time}`;
-      }
+      if (src === "live") { badge.classList.remove("local"); txt.textContent = `Live · ${fmt(at)}`; }
+      else { badge.classList.add("local"); txt.textContent = `Local · ${fmt(at)}`; }
     };
     window.__updateLiveBadge__();
+  })();
+  </script>
+
+  <!-- ===== Sticky Topbar Scroll Shadow ===== -->
+  <script>
+  (function(){
+    const tb = document.getElementById("topbar");
+    if (!tb) return;
+    const onScroll = () => tb.classList.toggle("scrolled", window.scrollY > 4);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  })();
+  </script>
+
+  <!-- ===== Cmd+K Modal Logic ===== -->
+  <script>
+  (function(){
+    const overlay = document.getElementById("cmdkOverlay");
+    const input = document.getElementById("cmdkInput");
+    const list = document.getElementById("cmdkList");
+    const trigger = document.getElementById("cmdkTrigger");
+    if (!overlay) return;
+
+    let allItems = [];
+    let selectedIdx = 0;
+
+    function buildIndex(){
+      allItems = [];
+      const D = window.DOCUMENTS || {};
+      Object.keys(D).forEach(k => {
+        const d = D[k] || {};
+        if (((d.sop||[]).length + (d.form||[]).length) === 0) return;
+        allItems.push({
+          kind: "dept", deptKey: k,
+          title: d.name || k,
+          sub: `${(d.sop||[]).length} SOP · ${(d.form||[]).length} Forms`,
+          href: `docs.html?dept=${encodeURIComponent(k)}`
+        });
+        (d.sop || []).forEach(item => allItems.push({
+          kind: "sop", deptKey: k, deptName: d.name || k,
+          code: (item.code||""), title: (item.title||""),
+          url: (item.url||""), href: (item.url||"")
+        }));
+        (d.form || []).forEach(item => allItems.push({
+          kind: "form", deptKey: k, deptName: d.name || k,
+          code: (item.code||""), title: (item.title||""),
+          url: (item.url||""), href: (item.url||"")
+        }));
+      });
+    }
+
+    function escHtml(s){ return String(s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function n(s){ return String(s||"").trim().toLowerCase(); }
+
+    function render(){
+      const q = n(input.value);
+      if (!q){
+        let recents = []; try { recents = JSON.parse(localStorage.getItem("hmsdoc_recents_v1") || "[]"); } catch(e){}
+        const depts = allItems.filter(x => x.kind === "dept").slice(0, 6);
+        let html = "";
+        if (recents.length){
+          html += `<div class="cmdk-section">เปิดล่าสุด</div>`;
+          html += recents.slice(0, 5).map((r, i) => {
+            const ic = r.type === "sop" ? `<div class="cmdk-item-ic sop">${ICON_SOP}</div>` : `<div class="cmdk-item-ic form">${ICON_FORM}</div>`;
+            return `<a class="cmdk-item" href="${escHtml(r.url)}" target="_blank" rel="noopener" data-idx="${i}">
+              ${ic}
+              <div class="cmdk-item-body">
+                <div class="cmdk-item-title"><span class="mono">${escHtml(r.code)}</span> <span>${escHtml(r.title)}</span></div>
+                <div class="cmdk-item-sub">${escHtml(r.deptName||r.deptKey)} · ${r.type==='sop'?'SOP':'Form'}</div>
+              </div>
+            </a>`;
+          }).join("");
+        }
+        html += `<div class="cmdk-section">แผนก</div>`;
+        html += depts.map((d, i) => `<a class="cmdk-item" href="${escHtml(d.href)}" data-idx="${i+recents.length}">
+          <div class="cmdk-item-ic dept">${ICON_DEPT}</div>
+          <div class="cmdk-item-body">
+            <div class="cmdk-item-title">${escHtml(d.title)}</div>
+            <div class="cmdk-item-sub">${escHtml(d.sub)}</div>
+          </div>
+        </a>`).join("");
+        list.innerHTML = html || `<div class="cmdk-empty">เริ่มพิมพ์เพื่อค้นหา</div>`;
+        return;
+      }
+
+      const found = allItems.filter(it => {
+        const hay = n(`${it.code||""} ${it.title||""} ${it.deptKey||""} ${it.deptName||""} ${it.sub||""}`);
+        return hay.includes(q);
+      }).slice(0, 30);
+
+      if (!found.length) {
+        list.innerHTML = `<div class="cmdk-empty">ไม่พบผลลัพธ์ "${escHtml(q)}"</div>`;
+        return;
+      }
+
+      list.innerHTML = `<div class="cmdk-section">ผลลัพธ์ (${found.length})</div>` +
+        found.map((it, i) => {
+          let ic, title, sub;
+          if (it.kind === "dept") {
+            ic = `<div class="cmdk-item-ic dept">${ICON_DEPT}</div>`;
+            title = escHtml(it.title);
+            sub = `Department · ${escHtml(it.sub||"")}`;
+          } else {
+            ic = it.kind === "sop"
+              ? `<div class="cmdk-item-ic sop">${ICON_SOP}</div>`
+              : `<div class="cmdk-item-ic form">${ICON_FORM}</div>`;
+            title = `<span class="mono">${escHtml(it.code)}</span> <span>${escHtml(it.title)}</span>`;
+            sub = `${escHtml(it.deptName||it.deptKey)} · ${it.kind==='sop'?'SOP':'Form'}`;
+          }
+          const target = (it.kind === "dept") ? "" : 'target="_blank" rel="noopener"';
+          const href = it.kind === "dept" ? it.href : (it.url || "#");
+          return `<a class="cmdk-item ${i===selectedIdx?'selected':''}" href="${escHtml(href)}" ${target} data-idx="${i}">
+            ${ic}
+            <div class="cmdk-item-body">
+              <div class="cmdk-item-title">${title}</div>
+              <div class="cmdk-item-sub">${sub}</div>
+            </div>
+          </a>`;
+        }).join("");
+    }
+
+    function open(){ buildIndex(); overlay.classList.add("open"); input.value = ""; selectedIdx = 0; render(); setTimeout(() => input.focus(), 10); }
+    function close(){ overlay.classList.remove("open"); }
+
+    trigger?.addEventListener("click", open);
+    overlay.addEventListener("click", e => { if (e.target === overlay) close(); });
+    input.addEventListener("input", () => { selectedIdx = 0; render(); });
+
+    document.addEventListener("keydown", e => {
+      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) { e.preventDefault(); open(); return; }
+      if (e.key === "/" && !overlay.classList.contains("open")) {
+        const tag = document.activeElement?.tagName;
+        if (tag !== "INPUT" && tag !== "TEXTAREA") { e.preventDefault(); open(); }
+        return;
+      }
+      if (e.key === "Escape" && overlay.classList.contains("open")) { close(); return; }
+      if (!overlay.classList.contains("open")) return;
+      const items = list.querySelectorAll(".cmdk-item");
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        selectedIdx = Math.min(selectedIdx + 1, items.length - 1);
+        items.forEach((it, i) => it.classList.toggle("selected", i === selectedIdx));
+        items[selectedIdx]?.scrollIntoView({ block: "nearest" });
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        selectedIdx = Math.max(selectedIdx - 1, 0);
+        items.forEach((it, i) => it.classList.toggle("selected", i === selectedIdx));
+        items[selectedIdx]?.scrollIntoView({ block: "nearest" });
+      } else if (e.key === "Enter") {
+        const target = items[selectedIdx];
+        if (target) target.click();
+      }
+    });
   })();
   </script>
 
