@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Humansoft Contract Generator</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+
+<!-- ✦ v4.0: docx-preview (render Master.docx แบบ native ~98% fidelity) -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx-preview@0.3.6/dist/docx-preview.min.js"></script>
+
+<!-- FileSaver -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<!-- ✦ Master.docx → docxtemplater pipeline (export + preview source) -->
+<script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.6/dist/pizzip.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.6/dist/pizzip-utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docxtemplater@3.50.0/build/docxtemplater.js"></script>
+<script src="Humansoft_Master_Template.js"></script>
+
+<!-- Fallback: ถ้า jsdelivr fail ให้ลอง unpkg -->
+<script>
+  if (typeof window.JSZip === 'undefined') {
+    document.write('<script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"><\/script>');
+  }
+  if (typeof window.docx === 'undefined') {
+    document.write('<script src="https://unpkg.com/docx-preview@0.3.6/dist/docx-preview.min.js"><\/script>');
+  }
+  if (typeof window.PizZip === 'undefined') {
+    document.write('<script src="https://unpkg.com/pizzip@3.1.6/dist/pizzip.js"><\/script>');
+  }
+  if (typeof window.docxtemplater === 'undefined') {
+    document.write('<script src="https://unpkg.com/docxtemplater@3.50.0/build/docxtemplater.js"><\/script>');
+  }
+</script>
+
+<style>
+:root{
+  --primary:#0F62FE; --primary-dark:#0043CE;
+  --bg:#E8ECF2; --card:#FFFFFF; --border:#E1E7EF;
+  --text:#1A2333; --muted:#5B6B82;
+  --ok:#11A957; --err:#D02B20; --warn:#B5880A;
+  --accent:#FFF4D6; --accent-border:#F2D26B;
+  --edited:#E7F3FF; --edited-border:#0F62FE;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; font-family:'Sarabun',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg); color:var(--text); line-height:1.55;
+}
+header{
+  background:#fff; border-bottom:1px solid var(--border);
+  padding:14px 24px; display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:100; gap:12px; flex-wrap:wrap;
+}
+header h1{font-size:18px; margin:0; display:flex; align-items:center; gap:10px;}
+header h1 .badge{
+  background:var(--primary); color:#fff; padding:3px 9px; border-radius:999px;
+  font-size:11px; font-weight:600;
+}
+.toolbar-actions{display:flex; gap:8px; flex-wrap:wrap;}
+.btn{
+  padding:9px 16px; border:1px solid var(--border); border-radius:7px;
+  background:#fff; color:var(--text); font-size:13px; font-weight:600;
+  cursor:pointer; font-family:inherit; transition:all .15s;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.btn:hover{border-color:var(--primary); color:var(--primary);}
+.btn-primary{background:var(--primary); color:#fff; border-color:var(--primary);}
+.btn-primary:hover{background:var(--primary-dark); color:#fff;}
+.btn-success{background:var(--ok); color:#fff; border-color:var(--ok);}
+.btn-success:hover{background:#0E8C47; color:#fff;}
+.btn-lg{padding:14px 28px; font-size:15px;}
+.btn:disabled{opacity:.5; cursor:not-allowed;}
+
+.layout{
+  display:grid; grid-template-columns:380px 1fr; gap:0;
+  min-height:calc(100vh - 60px);
+}
+@media(max-width:1024px){ .layout{grid-template-columns:1fr;} }
+
+/* ──────── Form panel ──────── */
+.form-panel{
+  background:#fff; border-right:1px solid var(--border);
+  padding:20px; overflow-y:auto; max-height:calc(100vh - 60px); position:sticky; top:60px;
+}
+@media(max-width:1024px){
+  .form-panel{position:static; max-height:none; border-right:0; border-bottom:1px solid var(--border);}
+}
+.section{margin-bottom:22px;}
+.section h3{
+  font-size:13px; color:var(--primary-dark); margin:0 0 10px;
+  text-transform:uppercase; letter-spacing:.5px; font-weight:700;
+  padding-bottom:6px; border-bottom:2px solid var(--bg);
+}
+.field{margin-bottom:12px;}
+.field label{display:block; font-size:12px; color:var(--muted); margin-bottom:3px; font-weight:500;}
+.field label .req{color:var(--err);}
+.field input, .field textarea{
+  width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:6px;
+  font-size:13px; font-family:inherit; background:#fff;
+}
+.field input:focus, .field textarea:focus{outline:none; border-color:var(--primary);}
+.field input[readonly]{
+  background:var(--bg); cursor:not-allowed; color:var(--primary-dark);
+  font-family:'Consolas','Courier New',monospace; font-weight:700; letter-spacing:.5px;
+}
+.field input[readonly]:focus{border-color:var(--border);}
+.field .lock-hint{
+  font-size:11px; color:var(--muted); margin-top:3px;
+  display:inline-flex; align-items:center; gap:4px;
+}
+.field .lock-hint .lock-icon{color:var(--ok);}
+.field textarea{resize:vertical; min-height:60px;}
+.field .hint{font-size:11px; color:var(--muted); margin-top:3px;}
+.field .hint .auto-tag{color:var(--primary); font-weight:600;}
+
+/* ──────── Editor panel ──────── */
+.editor-panel{
+  padding:20px; display:flex; flex-direction:column; min-height:calc(100vh - 60px);
+}
+.editor-meta{
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:10px; font-size:12px; color:var(--muted); flex-wrap:wrap; gap:8px;
+}
+.editor-meta .meta-left{display:inline-flex; align-items:center; gap:12px;}
+.editor-meta .save-status{display:inline-flex; align-items:center; gap:5px;}
+.editor-meta .save-status::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--muted);}
+.editor-meta .save-status.saved::before{background:var(--ok);}
+.editor-meta .save-status.dirty::before{background:var(--warn);}
+.editor-meta .edits-count{
+  font-size:11px; padding:2px 8px; background:var(--edited); color:var(--primary-dark);
+  border-radius:999px; font-weight:600;
+}
+.editor-meta .edits-count.zero{background:transparent; color:var(--muted); font-weight:500;}
+
+#editor-placeholder{
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:#fff; border:2px dashed var(--border); border-radius:12px;
+  padding:60px 30px; text-align:center; min-height:400px;
+}
+#editor-placeholder .icon{font-size:56px; margin-bottom:16px;}
+#editor-placeholder h2{font-size:20px; margin:0 0 8px;}
+#editor-placeholder p{color:var(--muted); font-size:14px; margin:0 0 22px; max-width:480px;}
+
+/* ──────── docx-preview wrapper ──────── */
+.docx-wrap{
+  flex:1; overflow:auto; padding:20px 0; background:var(--bg); border-radius:8px;
+  position:relative;
+}
+#docx-preview-container{
+  display:flex; flex-direction:column; align-items:center; gap:16px; min-height:300px;
+}
+/* docx-preview สร้าง .docx-wrapper > section.docx ตามจำนวนหน้า */
+#docx-preview-container .docx-wrapper{
+  background:transparent; padding:0;
+}
+#docx-preview-container section.docx{
+  background:#fff; box-shadow:0 4px 18px rgba(0,0,0,.12); border-radius:2px;
+  margin:0 auto;
+}
+
+/* paragraph editing — แสดงให้รู้ว่าแก้ไขได้ + แก้แล้ว */
+#docx-preview-container p[contenteditable="true"]{
+  outline:none; border-radius:2px; transition:background .12s;
+  cursor:text;
+}
+#docx-preview-container p[contenteditable="true"]:hover{
+  background:rgba(15,98,254,.04);
+}
+#docx-preview-container p[contenteditable="true"]:focus{
+  background:rgba(15,98,254,.08);
+  box-shadow:0 0 0 1px var(--primary);
+}
+#docx-preview-container p[data-edited="1"]{
+  background:var(--edited);
+  border-left:3px solid var(--edited-border);
+  padding-left:6px !important;
+}
+
+/* loading overlay */
+.docx-loading{
+  position:absolute; inset:0; background:rgba(232,236,242,.7);
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; color:var(--primary-dark); font-weight:600;
+  z-index:5; gap:8px;
+}
+.docx-loading.hidden{display:none;}
+
+.hidden{display:none !important;}
+
+/* ──────── Preview info banner ──────── */
+.preview-banner{
+  display:flex; align-items:flex-start; gap:10px;
+  background:#E7F3FF; border:1px solid #4A9BF5; border-radius:8px;
+  padding:10px 14px; margin:0 0 10px; font-size:12.5px; line-height:1.5;
+  color:#0043CE;
+}
+.preview-banner .icon{font-size:18px; flex-shrink:0; line-height:1.2;}
+.preview-banner .txt{flex:1;}
+.preview-banner .txt b{color:#001D6C;}
+.preview-banner .close{
+  background:transparent; border:0; color:#0043CE; cursor:pointer;
+  font-size:18px; padding:0 4px; line-height:1; font-family:inherit;
+  opacity:.6; transition:opacity .15s;
+}
+.preview-banner .close:hover{opacity:1;}
+
+/* ──────── Toast ──────── */
+#toast{
+  position:fixed; bottom:24px; right:24px; z-index:1000;
+  background:var(--text); color:#fff; padding:12px 18px; border-radius:8px;
+  font-size:13px; box-shadow:0 8px 24px rgba(0,0,0,.2);
+  opacity:0; transform:translateY(8px); transition:all .25s; pointer-events:none;
+  max-width:480px;
+}
+#toast.show{opacity:1; transform:translateY(0);}
+#toast.error{background:var(--err);}
+#toast.ok{background:var(--ok);}
+
+.spinner{
+  width:14px; height:14px; border:2px solid currentColor; border-top-color:transparent;
+  border-radius:50%; animation:spin .7s linear infinite; display:inline-block;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ──────── Modal (PDF instructions) ──────── */
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(15,23,42,.55);
+  display:flex; align-items:center; justify-content:center;
+  z-index:2000; padding:20px;
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.modal-backdrop.show{opacity:1; pointer-events:auto;}
+.modal{
+  background:#fff; border-radius:12px; padding:28px; max-width:560px; width:100%;
+  box-shadow:0 16px 48px rgba(0,0,0,.25); transform:translateY(8px);
+  transition:transform .2s; max-height:90vh; overflow-y:auto;
+}
+.modal-backdrop.show .modal{transform:translateY(0);}
+.modal h2{margin:0 0 14px; font-size:18px; display:flex; align-items:center; gap:10px;}
+.modal h2 .icon{font-size:24px;}
+.modal .step{
+  display:flex; gap:12px; padding:12px; margin-bottom:8px;
+  background:#F6F8FB; border-radius:8px; align-items:flex-start;
+}
+.modal .step .num{
+  flex-shrink:0; width:26px; height:26px; border-radius:50%;
+  background:var(--primary); color:#fff; font-weight:700;
+  display:flex; align-items:center; justify-content:center; font-size:13px;
+}
+.modal .step .body{font-size:13.5px; line-height:1.5;}
+.modal .step .body b{color:var(--primary-dark);}
+.modal .step .body code{
+  background:#fff; padding:2px 6px; border:1px solid var(--border);
+  border-radius:4px; font-family:'Consolas',monospace; font-size:12px;
+}
+.modal .alt{
+  margin-top:14px; padding:12px; background:#FFF8E5; border:1px solid #F2D26B;
+  border-radius:8px; font-size:12.5px; color:#5C4400;
+}
+.modal .alt b{color:#3a2c00;}
+.modal-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:18px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📄 Humansoft Contract Generator <span class="badge">v4.0</span></h1>
+  <div class="toolbar-actions">
+    <button class="btn" id="resetEdits" title="ล้างการแก้ไขทั้งหมดใน preview กลับไปใช้ Master.docx เริ่มต้น">↻ Reset edits</button>
+    <button class="btn btn-primary" id="downloadDocx" title="Generate .docx จาก Master + การแก้ไขใน preview">⬇ Download .docx</button>
+    <button class="btn btn-success" id="downloadPdf" title="Download .docx แล้วเปิดใน Word เพื่อ Save as PDF">📄 PDF (วิธีแปลง)</button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <aside class="form-panel">
+    <div class="section">
+      <h3>📋 ข้อมูลสัญญา</h3>
+      <div class="field"><label>เลขที่สัญญา <span class="hint auto-tag">auto · locked</span></label>
+        <input data-k="contract_no" id="contractNoInput" placeholder="HS-2026-0001" readonly>
+        <div class="lock-hint">
+          <span class="lock-icon">🔒</span> ระบบรันให้อัตโนมัติ — counter +1 ตอน <b>Download .docx</b> สำเร็จ
+        </div>
+      </div>
+      <div class="field"><label>วันที่ทำสัญญา <span class="req">*</span></label>
+        <input type="date" data-k="contract_date" data-thai-date="1">
+        <div class="hint" data-preview="contract_date">—</div></div>
+      <div class="field"><label>วันเริ่มต้นสัญญา</label>
+        <input type="date" data-k="contract_start" data-thai-date="1">
+        <div class="hint" data-preview="contract_start">—</div></div>
+      <div class="field"><label>วันสิ้นสุดสัญญา</label>
+        <input type="date" data-k="contract_end" data-thai-date="1">
+        <div class="hint" data-preview="contract_end">—</div></div>
+    </div>
+
+    <div class="section">
+      <h3>🏢 ข้อมูลลูกค้า</h3>
+      <div class="field"><label>ชื่อบริษัท <span class="req">*</span></label>
+        <input data-k="customer_company_name" placeholder="เอบีซี เทคโนโลยี จำกัด"></div>
+      <div class="field"><label>เลขทะเบียนนิติบุคคล (13 หลัก)</label>
+        <input data-k="customer_juristic_id" placeholder="0105563133922" pattern="\d{13}"></div>
+      <div class="field"><label>อีเมลติดต่อ</label>
+        <input data-k="customer_email" type="email" placeholder="contact@company.com"></div>
+      <div class="field"><label>ที่อยู่บริษัท</label>
+        <textarea data-k="customer_address" placeholder="เลขที่ ถนน แขวง เขต จังหวัด รหัสไปรษณีย์"></textarea></div>
+      <div class="field"><label>ผู้ติดต่อประสานงาน</label>
+        <input data-k="customer_contact_name" placeholder="คุณ..."></div>
+    </div>
+
+    <div class="section">
+      <h3>💰 ค่าบริการ</h3>
+      <div class="field"><label>จำนวนเงิน (ตัวเลข)</label>
+        <input data-k="service_fee_number" id="feeNumber" inputmode="decimal" placeholder="12,000">
+        <div class="hint">ไม่รวม VAT — รองรับทศนิยม</div></div>
+      <div class="field"><label>จำนวนเงิน (ตัวอักษร) <span class="hint auto-tag">auto</span></label>
+        <input data-k="service_fee_text" id="feeText" placeholder="(auto จากตัวเลข)">
+        <div class="hint">แก้เองได้ถ้าอยาก override</div></div>
+    </div>
+
+    <div class="section">
+      <h3>✍️ ผู้ลงนาม &amp; พยาน</h3>
+      <div class="field"><label>ผู้ลงนาม 1 (กรรมการ)</label><input data-k="customer_signatory_1"></div>
+      <div class="field"><label>ผู้ลงนาม 2 (กรรมการ)</label><input data-k="customer_signatory_2"></div>
+      <div class="field"><label>ผู้ลงนาม 3 (กรรมการ)</label><input data-k="customer_signatory_3"></div>
+      <div class="field"><label>พยาน 1</label><input data-k="customer_witness_1"></div>
+      <div class="field"><label>พยาน 2</label><input data-k="customer_witness_2"></div>
+    </div>
+
+    <div class="section" style="background:var(--bg); padding:12px; border-radius:8px; font-size:11px; color:var(--muted);">
+      💡 <b>วิธีใช้:</b> กรอกฟอร์ม → กด <b>เปิดดู Preview</b> → คลิก paragraph เพื่อแก้ไขข้อความ → กด <b>Download .docx</b><br>
+      🎯 <b>Preview = Master จริง:</b> render ผ่าน docx-preview ~98% ตรงกับ .docx (TH Sarabun New + ลายน้ำ + header/footer)<br>
+      ✏️ <b>แก้ paragraph ใดก็ได้:</b> คลิกที่ข้อความ → พิมพ์ทับ → การแก้จะติดไปในไฟล์ที่ download ด้วย<br>
+      ⚠️ <b>ข้อจำกัด:</b> การแก้จะใช้ font default (เพราะ flatten run formatting), Enter ไม่สร้าง paragraph ใหม่
+    </div>
+  </aside>
+
+  <main class="editor-panel">
+    <div id="editor-placeholder">
+      <div class="icon">📄</div>
+      <h2>พร้อมแสดง Preview</h2>
+      <p>กรอกข้อมูลในฟอร์มด้านซ้ายก่อน แล้วกดปุ่มด้านล่างเพื่อเปิด preview สัญญา</p>
+      <p style="font-size:12px; color:var(--primary-dark); background:var(--edited); padding:8px 12px; border-radius:6px; max-width:500px;">
+        ✨ <b>v4.0 ใหม่:</b> Preview render จาก Master.docx ตรง ~98% + คลิกที่ paragraph เพื่อแก้ข้อความได้ + การแก้จะติดไปในไฟล์ .docx ที่ download
+      </p>
+      <button class="btn btn-primary btn-lg" id="openEditorBtn">📖 เปิดดู Preview</button>
+    </div>
+
+    <div class="editor-meta hidden" id="editorMeta">
+      <span class="meta-left">
+        📝 Preview สัญญา (คลิก paragraph เพื่อแก้)
+        <span class="edits-count zero" id="editsCount">0 paragraph แก้แล้ว</span>
+        <button class="btn" id="closeEditorBtn" style="padding:4px 10px; font-size:11px;">ปิดแถบ</button>
+      </span>
+      <span class="save-status saved" id="saveStatus">บันทึกแล้ว</span>
+    </div>
+
+    <div class="preview-banner hidden" id="previewBanner">
+      <span class="icon">✨</span>
+      <span class="txt">
+        <b>v4.0 Hybrid Preview:</b> docx-preview render Master.docx ตรง ~98% (font + ลายน้ำ + header/footer)<br>
+        <b>คลิก paragraph</b> เพื่อแก้ข้อความ → จะ highlight สีฟ้า → การแก้จะ <b>ติดไปในไฟล์ .docx ที่ download</b><br>
+        <span style="color:#5B6B82; font-size:11.5px;">⚠️ ข้อจำกัด: ข้อความที่แก้จะใช้ font default (flatten formatting), Enter ไม่สร้าง paragraph ใหม่, การลบ {{token}} ทิ้งทำให้ field ไม่ถูก fill</span>
+      </span>
+      <button class="close" id="dismissBanner" title="ปิดข้อความนี้ (จำไว้ตลอด)">×</button>
+    </div>
+
+    <div class="docx-wrap hidden" id="docxWrap">
+      <div id="docx-preview-container"></div>
+      <div class="docx-loading hidden" id="docxLoading">
+        <span class="spinner"></span> กำลัง render Master.docx...
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<!-- ──────── PDF Instructions Modal ──────── -->
+<div class="modal-backdrop" id="pdfModal">
+  <div class="modal">
+    <h2><span class="icon">📄</span> วิธีแปลงเป็น PDF</h2>
+    <p style="font-size:13px; color:var(--muted); margin:0 0 16px;">
+      ไฟล์ <b>.docx</b> ถูก download แล้ว — เปิดด้วย Word/LibreOffice แล้ว Save as PDF เพื่อให้ได้ PDF ที่ตรงกับ Master 100%
+    </p>
+
+    <div class="step">
+      <div class="num">1</div>
+      <div class="body">เปิดไฟล์ <code>.docx</code> ที่เพิ่ง download ด้วย <b>Microsoft Word</b> (หรือ LibreOffice Writer)</div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div class="body"><b>Microsoft Word:</b> ไปที่ <code>File → Save As</code> → เลือกชนิดไฟล์เป็น <b>PDF (*.pdf)</b> → Save<br>
+      <b>LibreOffice:</b> <code>File → Export As → Export as PDF</code></div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div class="body">ได้ PDF ที่ <b>ฟ้อน TH Sarabun New + ลายน้ำ Humansoft + header/footer ครบ 100%</b> ตรงกับ Master</div>
+    </div>
+
+    <div class="alt">
+      <b>💡 ทางลัดบน Mac:</b> File → Print → คลิก <code>PDF</code> มุมล่างซ้าย → <code>Save as PDF</code><br>
+      <b>💡 บน Windows:</b> Ctrl+P → Printer = <code>Microsoft Print to PDF</code> → Print
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="closePdfModal">เข้าใจแล้ว</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════════════════════════ */
+const FIELDS = {};
+const editsMap = new Map();        // Map<pidx:number, string>  — user's paragraph overrides
+let editorVisible = false;
+let pendingRender = false;
+let renderInFlight = false;
+let renderTimer = null;
+
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ════════════════════════════════════════════════════════════════════
+   RUN DOCUMENT NUMBER — auto-generate sequence (localStorage-backed)
+   ════════════════════════════════════════════════════════════════════ */
+const RN_KEY = 'humansoft_run_number_v1';
+const RN_DEFAULTS = {
+  format: 'prefix-YYYY-NNNN',  // | prefix-YYYY-MM-NNN | prefix-YYMM-NNN | prefix-NNNNN
+  prefix: 'HS',
+  counters: {},                // { '2026': 12, '2026-04': 5, 'global': 47 }
+  lastIssued: null,
+  lastIssuedAt: null
+};
+
+function loadRunState(){
+  try {
+    const raw = localStorage.getItem(RN_KEY);
+    if (!raw) return JSON.parse(JSON.stringify(RN_DEFAULTS));
+    const merged = Object.assign({}, RN_DEFAULTS, JSON.parse(raw));
+    if (!merged.counters || typeof merged.counters !== 'object') merged.counters = {};
+    return merged;
+  } catch(e){ return JSON.parse(JSON.stringify(RN_DEFAULTS)); }
+}
+function saveRunState(){
+  try { localStorage.setItem(RN_KEY, JSON.stringify(runState)); } catch(e){ console.warn('saveRunState fail:', e); }
+}
+let runState = loadRunState();
+
+function counterKey(){
+  const now = new Date();
+  const y = now.getFullYear();
+  const yy = String(y).slice(2);
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  switch(runState.format){
+    case 'prefix-YYYY-NNNN':    return String(y);
+    case 'prefix-YYYY-MM-NNN':  return y + '-' + mm;
+    case 'prefix-YYMM-NNN':     return yy + mm;
+    case 'prefix-NNNNN':        return 'global';
+    default:                    return String(y);
+  }
+}
+
+function formatNumber(seq){
+  const now = new Date();
+  const y = now.getFullYear();
+  const yy = String(y).slice(2);
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  const p = (runState.prefix || 'HS').trim().toUpperCase();
+  switch(runState.format){
+    case 'prefix-YYYY-NNNN':    return p + '-' + y  + '-' + String(seq).padStart(4,'0');
+    case 'prefix-YYYY-MM-NNN':  return p + '-' + y  + '-' + mm + '-' + String(seq).padStart(3,'0');
+    case 'prefix-YYMM-NNN':     return p + '-' + yy + mm + '-' + String(seq).padStart(3,'0');
+    case 'prefix-NNNNN':        return p + '-' + String(seq).padStart(5,'0');
+    default:                    return p + '-' + String(seq).padStart(4,'0');
+  }
+}
+
+function peekNextNumber(){
+  const key = counterKey();
+  const next = (runState.counters[key] || 0) + 1;
+  return formatNumber(next);
+}
+
+function commitNumber(usedNumber){
+  // เรียกตอน Download success — counter +1 เสมอ (field ถูก lock อยู่แล้ว → usedNumber = peek แน่นอน)
+  const expected = peekNextNumber();
+  if (usedNumber !== expected){
+    // เผื่อกรณี edge: ถ้าเลขใน field ไม่ตรง (เช่น user เปลี่ยน format ระหว่าง flow) → skip
+    console.warn('commitNumber: used=', usedNumber, '!= expected=', expected, '→ skip');
+    return false;
+  }
+  const key = counterKey();
+  runState.counters[key] = (runState.counters[key] || 0) + 1;
+  runState.lastIssued = usedNumber;
+  runState.lastIssuedAt = new Date().toISOString();
+  saveRunState();
+  // โหลด "next" ตัวถัดไปใส่ field ทันที — พร้อมให้คนสร้างฉบับใหม่
+  applyNextToField();
+  handleSideEffects('contract_no');
+  return true;
+}
+
+function applyNextToField(){
+  if (!FIELDS.contract_no) return;
+  const next = peekNextNumber();
+  FIELDS.contract_no.input.value = next;
+  FIELDS.contract_no.currentValue = next;
+}
+
+function syncFromPrompt(){
+  const cur = peekNextNumber();
+  const msg = 'กรอกเลขสัญญาล่าสุดที่ใช้ไปแล้ว (จากเครื่องอื่น/ระบบเดิม)\n' +
+              'เลขถัดไปที่ระบบจะออก = เลขนี้ + 1\n\n' +
+              'Format ปัจจุบัน: ' + runState.format + '\n' +
+              'ตัวอย่าง: ' + cur;
+  const v = (prompt(msg, runState.lastIssued || cur) || '').trim();
+  if (!v) return;  // user cancelled
+  const m = v.match(/(\d+)\s*$/);
+  if (!m){ toast('ไม่พบส่วน sequence (เลขท้าย) ใน "' + v + '"', 'error'); return; }
+  const seq = parseInt(m[1], 10);
+  if (isNaN(seq) || seq < 0){ toast('Sequence ต้องเป็นจำนวนเต็มบวก', 'error'); return; }
+  const key = counterKey();
+  runState.counters[key] = seq;
+  runState.lastIssued = v;
+  runState.lastIssuedAt = new Date().toISOString();
+  saveRunState();
+  applyNextToField();
+  handleSideEffects('contract_no');
+  scheduleRender();
+  toast('Sync แล้ว — เลขถัดไป: ' + peekNextNumber(), 'ok');
+}
+
+function resetCounter(){
+  if (!confirm('Reset counter ทั้งหมด? เลขถัดไปจะเริ่มที่ 1 (lastIssued จะหายด้วย)')) return;
+  runState.counters = {};
+  runState.lastIssued = null;
+  runState.lastIssuedAt = null;
+  saveRunState();
+  applyNextToField();
+  handleSideEffects('contract_no');
+  scheduleRender();
+  toast('Reset counter สำเร็จ — เริ่มที่ ' + peekNextNumber(), 'ok');
+}
+
+/* Admin commands (เปิด DevTools Console พิมพ์ใช้งาน):
+   window.runNumber.peek()                         → ดูเลขถัดไป
+   window.runNumber.sync('HS-2026-0042')           → set counter ตามเลขล่าสุด
+   window.runNumber.reset()                        → ล้าง counter เริ่มที่ 1
+   window.runNumber.setFormat('prefix-YYYY-NNNN')  → เปลี่ยน format
+   window.runNumber.setPrefix('CTR')               → เปลี่ยน prefix
+   window.runNumber.state()                        → ดู state ทั้งหมด
+*/
+window.runNumber = {
+  peek: () => peekNextNumber(),
+  state: () => JSON.parse(JSON.stringify(runState)),
+  sync: (lastUsed) => {
+    if (!lastUsed) return syncFromPrompt();
+    const m = String(lastUsed).match(/(\d+)\s*$/);
+    if (!m) { console.error('ไม่พบ sequence ใน', lastUsed); return false; }
+    runState.counters[counterKey()] = parseInt(m[1], 10);
+    runState.lastIssued = String(lastUsed);
+    runState.lastIssuedAt = new Date().toISOString();
+    saveRunState();
+    applyNextToField();
+    handleSideEffects('contract_no');
+    scheduleRender();
+    console.log('✓ synced. next =', peekNextNumber());
+    return true;
+  },
+  reset: () => {
+    runState.counters = {}; runState.lastIssued = null; runState.lastIssuedAt = null;
+    saveRunState(); applyNextToField(); handleSideEffects('contract_no'); scheduleRender();
+    console.log('✓ reset. next =', peekNextNumber());
+  },
+  setFormat: (fmt) => {
+    const allowed = ['prefix-YYYY-NNNN','prefix-YYYY-MM-NNN','prefix-YYMM-NNN','prefix-NNNNN'];
+    if (!allowed.includes(fmt)){ console.error('format ต้องเป็น 1 ใน', allowed); return false; }
+    runState.format = fmt; saveRunState();
+    applyNextToField(); handleSideEffects('contract_no'); scheduleRender();
+    console.log('✓ format =', fmt, '· next =', peekNextNumber()); return true;
+  },
+  setPrefix: (p) => {
+    runState.prefix = String(p || 'HS').trim() || 'HS'; saveRunState();
+    applyNextToField(); handleSideEffects('contract_no'); scheduleRender();
+    console.log('✓ prefix =', runState.prefix, '· next =', peekNextNumber()); return true;
+  }
+};
+
+/* ════════════════════════════════════════════════════════════════════
+   UTILS — base64 + Thai date + bahttext
+   ════════════════════════════════════════════════════════════════════ */
+function base64ToUint8Array(b64){
+  const bin = atob(b64);
+  const len = bin.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+const THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                     'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+function isoToThaiBE(iso){
+  if(!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso || '';
+  const [y,m,d] = iso.split('-').map(Number);
+  return d + ' ' + THAI_MONTHS[m-1] + ' ' + (y + 543);
+}
+
+function bahttext(amount){
+  if (amount === '' || amount == null) return '';
+  const n = parseFloat(String(amount).replace(/,/g,''));
+  if(isNaN(n) || n<0) return '';
+  const NUMS=['','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+  const POS =['','สิบ','ร้อย','พัน','หมื่น','แสน'];
+  function group(num, hasPrev){
+    if(num===0) return '';
+    const s=String(num); let o='';
+    for(let i=0;i<s.length;i++){
+      const d=parseInt(s[i],10), pos=s.length-1-i;
+      if(d===0) continue;
+      if(pos===0 && d===1 && (hasPrev||s.length>1)) o+='เอ็ด';
+      else if(pos===1 && d===1) o+='สิบ';
+      else if(pos===1 && d===2) o+='ยี่สิบ';
+      else o += NUMS[d]+POS[pos];
+    }
+    return o;
+  }
+  function toText(num, hasPrev){
+    if(num===0) return 'ศูนย์';
+    const M=Math.floor(num/1000000), R=num%1000000;
+    let o='';
+    if(M>0) o += toText(M,hasPrev)+'ล้าน';
+    if(R>0) o += group(R, hasPrev||M>0);
+    return o;
+  }
+  const p = n.toFixed(2).split('.');
+  const b = parseInt(p[0],10), sa = parseInt(p[1],10);
+  let o='';
+  if(b>0) o += toText(b,false)+'บาท';
+  if(sa===0) o += b>0 ? 'ถ้วน' : 'ศูนย์บาทถ้วน';
+  else       o += toText(sa,false)+'สตางค์';
+  return o;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   FORM BINDING
+   ════════════════════════════════════════════════════════════════════ */
+function bindField(input){
+  const key = input.dataset.k;
+  if (!key) return;
+  FIELDS[key] = { input, currentValue: '' };
+  input.addEventListener('input', () => {
+    FIELDS[key].currentValue = input.value.trim();
+    handleSideEffects(key);
+    scheduleRender();
+  });
+}
+
+let feeTextDirty = false;
+function handleSideEffects(changedKey){
+  if (changedKey && FIELDS[changedKey] && FIELDS[changedKey].input.dataset.thaiDate){
+    const iso = FIELDS[changedKey].input.value;
+    const thai = isoToThaiBE(iso);
+    FIELDS[changedKey].currentValue = thai;
+    const tgt = document.querySelector('[data-preview="' + changedKey + '"]');
+    if(tgt) tgt.textContent = thai || '—';
+  }
+  if (changedKey === 'service_fee_number' && !feeTextDirty){
+    const t = bahttext(FIELDS.service_fee_number.currentValue);
+    FIELDS.service_fee_text.input.value = t;
+    FIELDS.service_fee_text.currentValue = t;
+  }
+  if (changedKey === 'service_fee_text'){
+    feeTextDirty = !!FIELDS.service_fee_text.currentValue;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   AUTO-SAVE (draft = field values + paragraph edits)
+   ════════════════════════════════════════════════════════════════════ */
+const STORAGE_KEY = 'humansoft_contract_draft_v40';
+const saveStatus = document.getElementById('saveStatus');
+const editsCountEl = document.getElementById('editsCount');
+let saveTimer = null;
+
+function markDirty(){ if(!saveStatus) return; saveStatus.classList.remove('saved'); saveStatus.classList.add('dirty'); saveStatus.textContent='กำลังบันทึก...';}
+function markSaved(){ if(!saveStatus) return; saveStatus.classList.remove('dirty'); saveStatus.classList.add('saved'); saveStatus.textContent='บันทึกแล้ว';}
+
+function updateEditsCount(){
+  if (!editsCountEl) return;
+  const n = editsMap.size;
+  editsCountEl.textContent = n + ' paragraph แก้แล้ว';
+  editsCountEl.classList.toggle('zero', n === 0);
+}
+
+function persistDraft(){
+  const draft = {
+    edits: Array.from(editsMap.entries()),
+    values: Object.fromEntries(Object.entries(FIELDS).map(([k,v]) => [k, v.input.value])),
+    ts: Date.now()
+  };
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(draft)); markSaved(); }
+  catch(e){ console.warn('Save failed:', e); }
+}
+function saveDraft(){ markDirty(); clearTimeout(saveTimer); saveTimer=setTimeout(persistDraft,1500);}
+function saveDraftDebounced(){ clearTimeout(saveTimer); saveTimer=setTimeout(persistDraft,1500);}
+
+function loadDraft(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (Array.isArray(d.edits)){
+      d.edits.forEach(([k, v]) => editsMap.set(Number(k), String(v)));
+    }
+    if (d.values){
+      Object.entries(d.values).forEach(([k,v]) => {
+        if (FIELDS[k] && v){ FIELDS[k].input.value = v; FIELDS[k].currentValue = v; }
+      });
+      Object.keys(FIELDS).forEach(k => handleSideEffects(k));
+    }
+    updateEditsCount();
+    return true;
+  } catch(e){ return false; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   XML PATCHING — apply editsMap into word/document.xml
+   ════════════════════════════════════════════════════════════════════ */
+const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+
+function patchParagraphsInXml(xmlString, editsMap){
+  if (!editsMap || editsMap.size === 0) return xmlString;
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlString, 'application/xml');
+  const perr = doc.getElementsByTagName('parsererror')[0];
+  if (perr){ console.warn('XML parse error:', perr.textContent); return xmlString; }
+  const paras = doc.getElementsByTagNameNS(W_NS, 'p');
+  for (let i = 0; i < paras.length; i++){
+    if (!editsMap.has(i)) continue;
+    const newText = editsMap.get(i);
+    const texts = Array.from(paras[i].getElementsByTagNameNS(W_NS, 't'));
+    if (texts.length === 0){
+      // Paragraph มีแต่ formatting (เช่น empty para สำหรับ spacing) → skip
+      continue;
+    }
+    // เขียนข้อความใหม่ลงใน <w:t> แรก, ลบ <w:t> ที่เหลือ
+    texts[0].textContent = newText;
+    texts[0].setAttribute('xml:space', 'preserve');
+    for (let j = 1; j < texts.length; j++){
+      texts[j].textContent = '';
+    }
+  }
+  return new XMLSerializer().serializeToString(doc);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   EXPORT — Master.docx + XML patches + docxtemplater (v4.0)
+   ════════════════════════════════════════════════════════════════════ */
+function buildRenderData(){
+  const data = {};
+  Object.entries(FIELDS).forEach(([k, v]) => {
+    data[k] = (v.currentValue == null ? '' : String(v.currentValue));
+  });
+  return data;
+}
+
+function generateMasterDocxBlob(){
+  if (!window.MASTER_DOCX_B64) {
+    throw new Error('Master template (Humansoft_Master_Template.js) ไม่ถูกโหลด');
+  }
+  const missing = [];
+  if (typeof PizZip === 'undefined')               missing.push('PizZip');
+  if (typeof window.docxtemplater === 'undefined') missing.push('docxtemplater');
+  if (missing.length){
+    throw new Error('Library โหลดไม่สำเร็จ: ' + missing.join(', ') + ' — เปิด DevTools (F12) ดู Network');
+  }
+  const bytes = base64ToUint8Array(window.MASTER_DOCX_B64);
+  const zip = new PizZip(bytes);
+
+  // Step 1: Apply editsMap → patch document.xml
+  if (editsMap.size > 0){
+    const docXml = zip.file('word/document.xml').asText();
+    const patched = patchParagraphsInXml(docXml, editsMap);
+    zip.file('word/document.xml', patched);
+  }
+
+  // Step 2: docxtemplater fills remaining {{tokens}}
+  const Doc = window.docxtemplater;
+  const doc = new Doc(zip, {
+    delimiters: { start: '{{', end: '}}' },
+    paragraphLoop: true,
+    linebreaks: true,
+    nullGetter: () => ''
+  });
+  doc.render(buildRenderData());
+  return doc.getZip().generate({
+    type: 'blob',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    compression: 'DEFLATE'
+  });
+}
+
+function buildFilename(ext){
+  const company = (FIELDS.customer_company_name && FIELDS.customer_company_name.currentValue) || 'Contract';
+  const date = (FIELDS.contract_date && FIELDS.contract_date.input.value) || new Date().toISOString().slice(0,10);
+  const safe = company.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_').slice(0, 40);
+  return safe + '_' + date + '.' + ext;
+}
+
+function downloadMasterDocx(){
+  const blob = generateMasterDocxBlob();
+  saveAs(blob, buildFilename('docx'));
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   PREVIEW RENDER — docx-preview pipeline
+   ════════════════════════════════════════════════════════════════════ */
+const docxLoadingEl = document.getElementById('docxLoading');
+
+function showLoading(){ docxLoadingEl && docxLoadingEl.classList.remove('hidden'); }
+function hideLoading(){ docxLoadingEl && docxLoadingEl.classList.add('hidden'); }
+
+async function renderPreview(){
+  if (!editorVisible){ pendingRender = true; return; }
+  if (renderInFlight){ pendingRender = true; return; }
+  if (typeof window.docx === 'undefined'){
+    toast('docx-preview ยังโหลดไม่เสร็จ — รอสักครู่', 'error');
+    return;
+  }
+
+  renderInFlight = true;
+  pendingRender = false;
+  showLoading();
+
+  try {
+    const blob = generateMasterDocxBlob();   // = patched + filled
+    const container = document.getElementById('docx-preview-container');
+    container.innerHTML = '';
+    await window.docx.renderAsync(blob, container, null, {
+      className: 'docx',
+      inWrapper: true,
+      breakPages: true,
+      ignoreFonts: false,
+      trimXmlDeclaration: true,
+      experimental: true,
+      useBase64URL: true,
+      renderHeaders: true,
+      renderFooters: true,
+      renderFootnotes: true
+    });
+    attachEditableHandlers(container);
+  } catch(err){
+    console.error('renderPreview failed:', err);
+    let msg = err.message || String(err);
+    if (err.properties && err.properties.errors) {
+      msg = err.properties.errors.map(e => e.properties && e.properties.explanation || e.message).join(' | ');
+    }
+    toast('Preview ไม่สำเร็จ: ' + msg, 'error');
+  } finally {
+    hideLoading();
+    renderInFlight = false;
+    if (pendingRender){
+      // มี request ใหม่เข้ามาตอนกำลัง render → run อีกรอบ
+      pendingRender = false;
+      setTimeout(renderPreview, 50);
+    } else {
+      saveDraft();
+    }
+  }
+}
+
+function attachEditableHandlers(container){
+  const paras = container.querySelectorAll('p');
+  paras.forEach((p, i) => {
+    p.setAttribute('data-pidx', i);
+    p.setAttribute('contenteditable', 'true');
+    p.spellcheck = false;
+
+    if (editsMap.has(i)){
+      p.setAttribute('data-edited', '1');
+      // ข้อความใน DOM ควรเป็นค่า patched อยู่แล้ว (เพราะเรา patch XML ก่อน render)
+      // แต่ถ้าด้วยเหตุใดๆไม่ตรง — overlay จาก editsMap
+      if (p.textContent !== editsMap.get(i)){
+        p.textContent = editsMap.get(i);
+      }
+    }
+
+    p.addEventListener('input', () => {
+      const txt = p.textContent;
+      if (txt && txt.trim().length > 0){
+        editsMap.set(i, txt);
+        p.setAttribute('data-edited', '1');
+      } else {
+        editsMap.delete(i);
+        p.removeAttribute('data-edited');
+      }
+      updateEditsCount();
+      markDirty();
+      saveDraftDebounced();
+    });
+
+    // Block Enter — ไม่ให้ split paragraph (จะทำให้ index เพี้ยน)
+    p.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        toast('การกด Enter ใน preview ไม่รองรับ — แก้ใน Master.docx ตรงๆ ถ้าต้องการเพิ่ม paragraph', 'error');
+      }
+    });
+  });
+  updateEditsCount();
+}
+
+function scheduleRender(){
+  if (!editorVisible){
+    pendingRender = true;
+    markDirty();
+    saveDraftDebounced();
+    return;
+  }
+  markDirty();
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(renderPreview, 800);  // debounce 800ms (heavy render)
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   OPEN/CLOSE EDITOR
+   ════════════════════════════════════════════════════════════════════ */
+const placeholderEl = document.getElementById('editor-placeholder');
+const docxWrapEl = document.getElementById('docxWrap');
+const editorMetaEl = document.getElementById('editorMeta');
+const previewBannerEl = document.getElementById('previewBanner');
+const BANNER_DISMISS_KEY = 'humansoft_preview_banner_dismissed_v4';
+
+function showEditor(){
+  editorVisible = true;
+  placeholderEl.classList.add('hidden');
+  docxWrapEl.classList.remove('hidden');
+  editorMetaEl.classList.remove('hidden');
+  if (!localStorage.getItem(BANNER_DISMISS_KEY)){
+    previewBannerEl.classList.remove('hidden');
+  }
+  renderPreview();
+}
+function hideEditor(){
+  editorVisible = false;
+  docxWrapEl.classList.add('hidden');
+  editorMetaEl.classList.add('hidden');
+  previewBannerEl.classList.add('hidden');
+  placeholderEl.classList.remove('hidden');
+}
+document.getElementById('openEditorBtn').addEventListener('click', showEditor);
+document.getElementById('closeEditorBtn').addEventListener('click', hideEditor);
+
+document.getElementById('dismissBanner').addEventListener('click', () => {
+  previewBannerEl.classList.add('hidden');
+  try { localStorage.setItem(BANNER_DISMISS_KEY, '1'); } catch(e){}
+});
+
+/* ════════════════════════════════════════════════════════════════════
+   TOAST
+   ════════════════════════════════════════════════════════════════════ */
+function toast(msg, type){
+  const el = document.getElementById('toast');
+  el.className=''; el.classList.add('show');
+  if (type) el.classList.add(type);
+  el.textContent = msg;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ACTIONS — Reset edits, Download .docx, PDF modal
+   ════════════════════════════════════════════════════════════════════ */
+document.getElementById('resetEdits').addEventListener('click', () => {
+  if (editsMap.size === 0){
+    toast('ยังไม่มีการแก้ไขใน preview', 'ok');
+    return;
+  }
+  if (!confirm('ล้างการแก้ไข paragraph ทั้งหมด (' + editsMap.size + ' รายการ)? ค่าในฟอร์มจะไม่หาย')) return;
+  editsMap.clear();
+  updateEditsCount();
+  if (editorVisible) renderPreview();
+  saveDraft();
+  toast('Reset edits สำเร็จ', 'ok');
+});
+
+document.getElementById('downloadDocx').addEventListener('click', () => {
+  try {
+    const usedNo = (FIELDS.contract_no && FIELDS.contract_no.input.value || '').trim();
+    downloadMasterDocx();
+    const committed = commitNumber(usedNo);
+    const editsNote = editsMap.size > 0 ? ' · ' + editsMap.size + ' paragraph แก้' : '';
+    const rnNote = committed ? ' · run #' + usedNo + ' (next: ' + peekNextNumber() + ')' : '';
+    toast('Download .docx สำเร็จ' + editsNote + rnNote, 'ok');
+  } catch(err){
+    console.error(err);
+    let msg = err.message || String(err);
+    if (err.properties && err.properties.errors) {
+      msg = err.properties.errors.map(e => e.properties && e.properties.explanation || e.message).join(' | ');
+    }
+    toast('Export .docx ไม่สำเร็จ: ' + msg, 'error');
+  }
+});
+
+const pdfModal = document.getElementById('pdfModal');
+function showPdfModal(){ pdfModal.classList.add('show'); }
+function hidePdfModal(){ pdfModal.classList.remove('show'); }
+document.getElementById('closePdfModal').addEventListener('click', hidePdfModal);
+pdfModal.addEventListener('click', (e) => { if (e.target === pdfModal) hidePdfModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hidePdfModal(); });
+
+document.getElementById('downloadPdf').addEventListener('click', () => {
+  try {
+    const usedNo = (FIELDS.contract_no && FIELDS.contract_no.input.value || '').trim();
+    downloadMasterDocx();
+    commitNumber(usedNo);
+    showPdfModal();
+    toast('Download .docx แล้ว (run #' + usedNo + ') — ทำตามขั้นตอนเพื่อแปลง PDF', 'ok');
+  } catch(err){
+    console.error(err);
+    let msg = err.message || String(err);
+    if (err.properties && err.properties.errors) {
+      msg = err.properties.errors.map(e => e.properties && e.properties.explanation || e.message).join(' | ');
+    }
+    toast('Generate ไม่สำเร็จ: ' + msg, 'error');
+  }
+});
+
+/* ════════════════════════════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════════════════════════════ */
+function initFormBindings(){ document.querySelectorAll('[data-k]').forEach(bindField); }
+
+function setDefaultDate(){
+  const t = new Date();
+  const iso = t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
+  if (FIELDS.contract_date && !FIELDS.contract_date.input.value){
+    FIELDS.contract_date.input.value = iso;
+    FIELDS.contract_date.currentValue = isoToThaiBE(iso);
+    handleSideEffects('contract_date');
+  }
+}
+initFormBindings();
+const restored = loadDraft();
+if (!restored){ setDefaultDate(); }
+// Run Number: field readonly + auto → ทับด้วย "next" จาก counter ปัจจุบันเสมอ
+// (กันกรณี draft มีเลขเก่าจาก session ก่อน)
+applyNextToField();
+handleSideEffects('contract_no');
+markSaved();
+updateEditsCount();
+
+console.log('✓ Humansoft Contract Generator v4.0 — docx-preview hybrid (Option C)');
+console.log('   Master loaded:', !!window.MASTER_DOCX_B64,
+            '| b64 length:', window.MASTER_DOCX_B64 ? window.MASTER_DOCX_B64.length : 0);
+console.log('   PizZip:', typeof PizZip,
+            '| docxtemplater:', typeof window.docxtemplater,
+            '| docx-preview:', typeof window.docx,
+            '| JSZip:', typeof window.JSZip);
+console.log('   editsMap restored:', editsMap.size, 'paragraph(s)');
+
+// Startup health check
+window.addEventListener('load', () => {
+  const issues = [];
+  if (!window.MASTER_DOCX_B64) issues.push('Humansoft_Master_Template.js (master)');
+  if (typeof PizZip === 'undefined') issues.push('PizZip');
+  if (typeof window.docxtemplater === 'undefined') issues.push('docxtemplater');
+  if (typeof window.docx === 'undefined') issues.push('docx-preview');
+  if (typeof window.JSZip === 'undefined') issues.push('JSZip');
+  if (issues.length){
+    setTimeout(() => toast('⚠️ โหลดไม่ครบ: ' + issues.join(', ') + ' — บาง feature จะไม่ทำงาน', 'error'), 600);
+    console.warn('Missing dependencies:', issues);
+  } else {
+    console.log('✓ All dependencies loaded — ready to render & generate.');
+  }
+});
+</script>
+</body>
+</html>
